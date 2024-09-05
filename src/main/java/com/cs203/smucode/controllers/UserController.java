@@ -6,6 +6,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.ResponseEntity;
 
+/**
+ * @author: gav
+ * @version: 1.0
+ * @since: 2024-09-05
+ */
 @RestController
 public class UserController {
 
