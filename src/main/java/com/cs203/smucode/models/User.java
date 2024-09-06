@@ -8,6 +8,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+/**
+ * @author: gav
+ * @version: 1.0
+ * @since: 2024-09-05
+ */
 @Entity
 @Data
 @NoArgsConstructor
