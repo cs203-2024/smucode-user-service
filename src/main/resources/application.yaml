@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: user-service
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+aws:
+  rds:
+    instance:
+      identifier: smucode-user-db
+  region: ap-southeast-1
+  secretsmanager:
+    db:
+      password:
+        secret: ${DB_PASSWORD_SECRET_NAME}
+
+logging:
+  level:
+    root: INFO
+    com.cs203.smucode: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
