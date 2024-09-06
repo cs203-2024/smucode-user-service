@@ -28,4 +28,9 @@ public class UserController {
     public ResponseEntity<String> logout() {
         return ResponseEntity.ok("This will logout the user");
     }
+
+    @GetMapping("/api/users/profile")
+    public ResponseEntity<String> getProfile() {
+        return ResponseEntity.ok("This will return the user's profile");
+    }
 }
