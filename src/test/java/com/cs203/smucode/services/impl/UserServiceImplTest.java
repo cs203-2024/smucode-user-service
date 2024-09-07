@@ -74,6 +74,7 @@ public class UserServiceImplTest {
      * Verifies that the method correctly creates a new user with an encoded password.
      */
     @Test
+    @DisplayName("Should create user")
     void createUser() {
         String username = "newuser";
         User user = new User(1L, username, "test@example.com", "password", null, "PLAYER");
@@ -94,6 +95,7 @@ public class UserServiceImplTest {
      * Verifies that the method correctly calls the repository to delete a user by their ID.
      */
     @Test
+    @DisplayName("Should delete user")
     void deleteUser() {
         Long userId = 1L;
         userService.deleteUser(userId);

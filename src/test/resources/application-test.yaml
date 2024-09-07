@@ -12,6 +12,4 @@ spring:
 
 logging:
   level:
-    root: DEBUG
-    org.springframework: DEBUG
     com.cs203.smucode: TRACE
