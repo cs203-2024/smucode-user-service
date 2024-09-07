@@ -1,6 +1,6 @@
 package com.cs203.smucode.services.impl;
 
-import com.cs203.smucode.services.ICRUDUserService;
+import com.cs203.smucode.services.IUserService;
 import com.cs203.smucode.models.User;
 import com.cs203.smucode.repositories.UserRepository;
 
@@ -17,12 +17,12 @@ import java.util.Optional;
  * @since: 2024-09-05
  */
 @Service
-public class CRUDUserServiceImpl implements ICRUDUserService {
+public class UserServiceImpl implements IUserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public CRUDUserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
