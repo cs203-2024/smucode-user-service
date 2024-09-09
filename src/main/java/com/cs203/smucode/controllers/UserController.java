@@ -52,11 +52,10 @@ public class UserController {
                 throw new ApiRequestException("Username and password are required");
             }
             User user = userService.getUserByUsername(username);
-            if (user != null && user.getPassword().equals(password)) {
-                return ResponseEntity.ok("User logged in successfully");
-            } else {
+            if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
             }
+            return ResponseEntity.ok("User logged in successfully");
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {
