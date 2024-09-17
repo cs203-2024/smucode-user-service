@@ -14,7 +14,7 @@ public class URLValidator implements ConstraintValidator<ValidURL, String> {
     @Override
     public boolean isValid(String url, ConstraintValidatorContext context) {
         if (url == null || url.isEmpty()) {
-            return true; // Return true because we allow no profile pictures
+            return false; // Return false, url should be defaulted in controller level
         }
 
         try {
