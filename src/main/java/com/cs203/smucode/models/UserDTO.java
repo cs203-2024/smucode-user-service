@@ -2,6 +2,7 @@ package com.cs203.smucode.models;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 
 public record UserDTO(
 
