@@ -15,7 +15,7 @@ public class PlayerUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(() -> user.getAuthority());
+        return List.of( () -> "READ"); // to be changed
     }
     
     @Override
