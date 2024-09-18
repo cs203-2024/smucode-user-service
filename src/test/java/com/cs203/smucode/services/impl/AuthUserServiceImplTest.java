@@ -3,6 +3,7 @@ package com.cs203.smucode.services.impl;
 import com.cs203.smucode.models.User;
 import com.cs203.smucode.models.PlayerUser;
 import com.cs203.smucode.models.AdminUser;
+import com.cs203.smucode.models.UserRole;
 import com.cs203.smucode.services.IUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,13 +34,13 @@ class AuthUserServiceImplTest {
     @DisplayName("Should load player user by username")
     void loadPlayerUserByUsername() {
         String username = "player1";
-        User user = new User(1L, username, "player@example.com", "password", null, "PLAYER");
+        User user = new User(1L, username, "player@example.com", "password", null, UserRole.PLAYER);
         when(userService.getUserByUsername(username)).thenReturn(user);
 
         UserDetails userDetails = authUserService.loadUserByUsername(username);
 
         assertNotNull(userDetails);
-        assertTrue(userDetails instanceof PlayerUser);
+        assertInstanceOf(PlayerUser.class, userDetails);
         assertEquals(username, userDetails.getUsername());
     }
 
@@ -47,13 +48,13 @@ class AuthUserServiceImplTest {
     @DisplayName("Should load admin user by username")
     void loadAdminUserByUsername() {
         String username = "admin1";
-        User user = new User(2L, username, "admin@example.com", "password", null, "ADMIN");
+        User user = new User(2L, username, "admin@example.com", "password", null, UserRole.ADMIN);
         when(userService.getUserByUsername(username)).thenReturn(user);
 
         UserDetails userDetails = authUserService.loadUserByUsername(username);
 
         assertNotNull(userDetails);
-        assertTrue(userDetails instanceof AdminUser);
+        assertInstanceOf(AdminUser.class, userDetails);
         assertEquals(username, userDetails.getUsername());
     }
 
@@ -64,15 +65,5 @@ class AuthUserServiceImplTest {
         when(userService.getUserByUsername(username)).thenReturn(null);
 
         assertThrows(UsernameNotFoundException.class, () -> authUserService.loadUserByUsername(username));
-    }
-
-    @Test
-    @DisplayName("Should throw IllegalStateException for unknown authority")
-    void loadUserByUsernameUnknownAuthority() {
-        String username = "unknown";
-        User user = new User(3L, username, "unknown@example.com", "password", null, "UNKNOWN");
-        when(userService.getUserByUsername(username)).thenReturn(user);
-
-        assertThrows(IllegalStateException.class, () -> authUserService.loadUserByUsername(username));
     }
 }
