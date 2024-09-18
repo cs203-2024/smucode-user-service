@@ -1,7 +1,20 @@
-FROM ubuntu:latest
+FROM openjdk:17.0.2-slim
 
-RUN apt-get update && apt-get install -y openjdk-21-jdk
+# Add a non-root user
+RUN groupadd -r spring && useradd -r -g spring spring
 
-COPY target/smucode-user-service-0.0.1-SNAPSHOT.jar /app/smucode-user-service.jar
+WORKDIR /app
 
-ENTRYPOINT ["java", "-jar", "/app/smucode-user-service.jar"]
+COPY target/smucode-0.0.1-SNAPSHOT.jar smucode-user-service.jar
+
+# Set ownership to the non-root user
+RUN chown -R spring:spring /app
+
+USER spring
+
+EXPOSE 8761
+
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget -q --spider http://localhost:8761/actuator/health || exit 1
+
+ENTRYPOINT ["java", "-jar", "smucode-user-service.jar"]
