@@ -28,8 +28,7 @@ public record UserDTO(
         @NotNull(message = "Role cannot be empty/null")
         String role,
 
-        Double mu,
-        Double sigma,
-        Double skillIndex
-
+        double mu,
+        double sigma,
+        double skillIndex
 ) {}
