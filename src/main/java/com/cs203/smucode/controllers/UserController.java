@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Map;
+import de.gesundkrank.jskills.Rating;
 
 /**
  * @author: jere
@@ -96,6 +97,25 @@ public class UserController {
             throw e;
         } catch (Exception e) {
             throw new ApiRequestException("An error occurred while fetching the user profile", e);
+        }
+    }
+
+    //true skill-related
+    @PostMapping("/{id}/update-rating")
+    public ResponseEntity<String> updateRating(@PathVariable Long id, @RequestBody Map<String, Double> ratingData) {
+        try {
+            Double mu = ratingData.get("mu");
+            Double sigma = ratingData.get("sigma");
+            if (mu == null || sigma == null) {
+                throw new ApiRequestException("Mu and sigma are required");
+            }
+            Rating newRating = new Rating(mu, sigma);
+            userService.updateUserRating(id, newRating);
+            return ResponseEntity.ok("User rating updated successfully");
+        } catch (ApiRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiRequestException("An error occurred while updating the user's rating", e);
         }
     }
 }
