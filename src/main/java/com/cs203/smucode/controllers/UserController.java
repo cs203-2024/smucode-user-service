@@ -27,13 +27,18 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) {
+    @GetMapping("/{username}")
+    public ResponseEntity<User> getUser(@PathVariable String username) {
         try {
-            User user = userService.getUserByUsername(id.toString());
-            if (user == null) {
-                throw new ApiRequestException("User not found with id: " + id);
+            if (username == null || username.isEmpty()) {
+                throw new ApiRequestException("Username cannot be null or empty");
             }
+
+            User user = userService.getUserByUsername(username);
+            if (user == null) {
+                throw new ApiRequestException("User not found with username: " + username);
+            }
+
             return ResponseEntity.ok(user);
         } catch (ApiRequestException e) {
             throw e;
