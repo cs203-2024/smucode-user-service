@@ -8,5 +8,5 @@ public interface IUserService {
     User getUserByUsername(String username);
     User createUser(User user);
     void deleteUser(Long id);
-    void updateUserRating(Long userId, Rating newRating);
+    void updateUserRating(String username, Rating newRating);
 }

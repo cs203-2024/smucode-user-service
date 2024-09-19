@@ -106,8 +106,8 @@ public class UserController {
     }
 
     //true skill-related
-    @PostMapping("/{id}/update-rating")
-    public ResponseEntity<String> updateRating(@PathVariable Long id, @RequestBody Map<String, Double> ratingData) {
+    @PostMapping("/{username}/update-rating")
+    public ResponseEntity<String> updateRating(@PathVariable String username, @RequestBody Map<String, Double> ratingData) {
         try {
             Double mu = ratingData.get("mu");
             Double sigma = ratingData.get("sigma");
@@ -115,7 +115,7 @@ public class UserController {
                 throw new ApiRequestException("Mu and sigma are required");
             }
             Rating newRating = new Rating(mu, sigma);
-            userService.updateUserRating(id, newRating);
+            userService.updateUserRating(username, newRating);
             return ResponseEntity.ok("User rating updated successfully");
         } catch (ApiRequestException e) {
             throw e;

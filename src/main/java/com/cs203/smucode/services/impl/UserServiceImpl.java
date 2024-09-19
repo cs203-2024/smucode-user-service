@@ -63,10 +63,10 @@ public class UserServiceImpl implements IUserService {
     //trueSkill-related methods
     @Override
     @Transactional
-    public void updateUserRating(Long userId, Rating newRating) {
-        Optional<User> optionalUser = userRepository.findById(userId);
+    public void updateUserRating(String username, Rating newRating) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
-            throw new IllegalArgumentException("User not found with id: " + userId);
+            throw new IllegalArgumentException("User not found with username: " + username);
         }
         User user = optionalUser.get();
         user.setMu(newRating.getMean());
