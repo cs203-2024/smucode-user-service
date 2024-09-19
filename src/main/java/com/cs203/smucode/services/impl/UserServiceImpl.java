@@ -1,5 +1,7 @@
 package com.cs203.smucode.services.impl;
 
+import com.cs203.smucode.constants.TrueSkillConstants;
+import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.services.IUserService;
 import com.cs203.smucode.models.User;
 import com.cs203.smucode.repositories.UserRepository;
@@ -23,11 +25,6 @@ public class UserServiceImpl implements IUserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    //default TrueSkill parameters
-    private static final double DEFAULT_MU = 25.0;
-    private static final double DEFAULT_SIGMA = 8.333; //default s.d.
-    private static final int K_FACTOR = 3; //"confidence" parameter
-
     @Autowired
     public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -47,9 +44,9 @@ public class UserServiceImpl implements IUserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         //set the default TrueSkill parameters
-        user.setMu(DEFAULT_MU);
-        user.setSigma(DEFAULT_SIGMA);
-        user.setSkillIndex(calculateSkillIndex(DEFAULT_MU, DEFAULT_SIGMA));
+        user.setMu(TrueSkillConstants.DEFAULT_MU);
+        user.setSigma(TrueSkillConstants.DEFAULT_SIGMA);
+        user.setSkillIndex(calculateSkillIndex(TrueSkillConstants.DEFAULT_MU, TrueSkillConstants.DEFAULT_SIGMA));
 
         return userRepository.save(user);
     }
@@ -64,11 +61,8 @@ public class UserServiceImpl implements IUserService {
     @Override
     @Transactional
     public void updateUserRating(String username, Rating newRating) {
-        Optional<User> optionalUser = userRepository.findByUsername(username);
-        if (optionalUser.isEmpty()) {
-            throw new IllegalArgumentException("User not found with username: " + username);
-        }
-        User user = optionalUser.get();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ApiRequestException("User not found with username: " + username));
         user.setMu(newRating.getMean());
         user.setSigma(newRating.getStandardDeviation());
         user.setSkillIndex(calculateSkillIndex(user.getMu(), user.getSigma()));
@@ -76,6 +70,6 @@ public class UserServiceImpl implements IUserService {
     }
 
     private double calculateSkillIndex(double mu, double sigma) {
-        return mu - K_FACTOR * sigma;
+        return mu - TrueSkillConstants.K_FACTOR * sigma;
     }
 }
