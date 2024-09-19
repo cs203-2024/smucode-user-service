@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
 import java.util.Map;
+import de.gesundkrank.jskills.Rating;
 
 /**
  * @author: jere
@@ -101,6 +102,33 @@ public class UserController {
             throw e;
         } catch (Exception e) {
             throw new ApiRequestException("An error occurred while fetching the user profile", e);
+        }
+    }
+
+    //true skill-related
+    @PutMapping("/{username}/update-rating")
+    public ResponseEntity<String> updateRating(@PathVariable String username, @RequestBody Map<String, Object> ratingData) {
+        try {
+            //validate that both 'mu' and 'sigma' are present, and of valid type
+            if (!ratingData.containsKey("mu") || !(ratingData.get("mu") instanceof Number)) {
+                throw new ApiRequestException("'mu' is required and must be a valid number");
+            }
+            if (!ratingData.containsKey("sigma") || !(ratingData.get("sigma") instanceof Number)) {
+                throw new ApiRequestException("'sigma' is required and must be a valid number");
+            }
+
+            //then we cast to double
+            double mu = ((Number) ratingData.get("mu")).doubleValue();
+            double sigma = ((Number) ratingData.get("sigma")).doubleValue();
+
+            Rating newRating = new Rating(mu, sigma);
+            userService.updateUserRating(username, newRating);
+
+            return ResponseEntity.ok("User rating updated successfully");
+        } catch (ApiRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiRequestException("An error occurred while updating the user's rating", e);
         }
     }
 }
