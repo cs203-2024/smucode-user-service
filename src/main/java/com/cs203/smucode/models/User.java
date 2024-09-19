@@ -28,4 +28,9 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    // TrueSkill attributes
+    private double mu;
+    private double sigma;
+    private double skillIndex;
 }

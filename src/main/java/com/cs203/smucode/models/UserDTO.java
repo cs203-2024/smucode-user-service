@@ -26,6 +26,10 @@ public record UserDTO(
         String profileImageUrl,
 
         @NotNull(message = "Role cannot be empty/null")
-        String role
+        String role,
+
+        Double mu,
+        Double sigma,
+        Double skillIndex
 
 ) {}
