@@ -1,6 +1,7 @@
 package com.cs203.smucode.services.impl;
 
 import com.cs203.smucode.models.User;
+import com.cs203.smucode.models.UserRole;
 import com.cs203.smucode.repositories.UserRepository;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -59,7 +60,7 @@ public class UserServiceImplTest {
     @DisplayName("Should retrieve user by username")
     void getUserByUsername() {
         String username = "testuser";
-        User user = new User(1L, username, "test@example.com", "password", null, "PLAYER");
+        User user = new User(1L, username, "test@example.com", "password", null, UserRole.PLAYER);
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
         User result = userService.getUserByUsername(username);
@@ -77,7 +78,7 @@ public class UserServiceImplTest {
     @DisplayName("Should create user")
     void createUser() {
         String username = "newuser";
-        User user = new User(1L, username, "test@example.com", "password", null, "PLAYER");
+        User user = new User(1L, username, "test@example.com", "password", null, UserRole.PLAYER);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
 
