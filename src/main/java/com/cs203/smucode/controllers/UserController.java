@@ -106,16 +106,24 @@ public class UserController {
     }
 
     //true skill-related
-    @PostMapping("/{username}/update-rating")
-    public ResponseEntity<String> updateRating(@PathVariable String username, @RequestBody Map<String, Double> ratingData) {
+    @PutMapping("/{username}/update-rating")
+    public ResponseEntity<String> updateRating(@PathVariable String username, @RequestBody Map<String, Object> ratingData) {
         try {
-            Double mu = ratingData.get("mu");
-            Double sigma = ratingData.get("sigma");
-            if (mu == null || sigma == null) {
-                throw new ApiRequestException("Mu and sigma are required");
+            //validate that both 'mu' and 'sigma' are present, and of valid type
+            if (!ratingData.containsKey("mu") || !(ratingData.get("mu") instanceof Number)) {
+                throw new ApiRequestException("'mu' is required and must be a valid number");
             }
+            if (!ratingData.containsKey("sigma") || !(ratingData.get("sigma") instanceof Number)) {
+                throw new ApiRequestException("'sigma' is required and must be a valid number");
+            }
+
+            //then we cast to double
+            double mu = ((Number) ratingData.get("mu")).doubleValue();
+            double sigma = ((Number) ratingData.get("sigma")).doubleValue();
+
             Rating newRating = new Rating(mu, sigma);
             userService.updateUserRating(username, newRating);
+
             return ResponseEntity.ok("User rating updated successfully");
         } catch (ApiRequestException e) {
             throw e;
