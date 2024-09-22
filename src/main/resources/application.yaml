@@ -18,8 +18,11 @@ spring:
 
 logging:
   level:
-    com.cs203.smucode: TRACE
+    com.cs203.smucode: DEBUG
 
 eureka:
   client:
     enabled: false
+
+jwt:
+  expiration: 600000
