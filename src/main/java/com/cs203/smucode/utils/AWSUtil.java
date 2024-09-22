@@ -41,6 +41,4 @@ public class AWSUtil {
         
         return secretValueResponse.secretString();
     }
-
-    public static PublicKey
 }

@@ -1,6 +1,6 @@
 package com.cs203.smucode.configs;
 
-import com.cs203.smucode.utils.AWSUtils;
+import com.cs203.smucode.utils.AWSUtil;
 
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -57,7 +57,7 @@ public class DataSourceConfig {
                 dbInstance.dbName()); // Database name
 
         // Retrieve the database password from AWS Secrets Manager
-        String dbPassword = AWSUtils.getValueFromSecretsManager(dbPasswordSecretName);
+        String dbPassword = AWSUtil.getValueFromSecretsManager(dbPasswordSecretName);
 
         // Configure HikariCP connection pool
         HikariConfig config = new HikariConfig();
