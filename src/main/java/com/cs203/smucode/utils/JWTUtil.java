@@ -13,7 +13,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Date;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,16 +31,27 @@ import org.springframework.stereotype.Component;
 public class JWTUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(JWTUtil.class);
+
     @Value("${jwt.expiration}")
     private long expirationTime;
 
+    /**
+     * RSA signer used to sign the JWT tokens.
+     */
     private RSASSASigner rsaSigner;
 
+    /**
+     * Initializes by setting up the RSA signer with a private key fetched from AWS Secrets Manager.
+     *
+     * @throws InvalidKeySpecException if the private key specification is invalid
+     * @throws NoSuchAlgorithmException if the RSA algorithm is not available
+     */
     @PostConstruct
     public void init()
         throws InvalidKeySpecException, NoSuchAlgorithmException {
-
-        String privateKeyStr = AWSUtil.getValueFromSecretsManager("JWTPrivateKey");
+        String privateKeyStr = AWSUtil.getValueFromSecretsManager(
+            "JWTPrivateKey"
+        );
         logger.info("Fetched JWT private key: {}", privateKeyStr);
         byte[] privateKeyBytes = Base64.getDecoder().decode(privateKeyStr);
 
@@ -54,6 +64,12 @@ public class JWTUtil {
         rsaSigner = new RSASSASigner(privateKey);
     }
 
+    /**
+     * Generates a JWT token post-authentication.
+     *
+     * @param auth the Authentication object containing user details
+     * @return a String representation of the signed JWT token (for Bearer)
+     */
     public String generateToken(Authentication auth) throws JOSEException {
         UserDetails userDetails = (UserDetails) auth.getPrincipal();
 
