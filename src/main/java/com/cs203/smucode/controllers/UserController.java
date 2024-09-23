@@ -1,7 +1,9 @@
 package com.cs203.smucode.controllers;
 
 import com.cs203.smucode.exception.ApiRequestException;
+import com.cs203.smucode.mappers.UserMapper;
 import com.cs203.smucode.models.User;
+import com.cs203.smucode.models.UserDTO;
 import com.cs203.smucode.services.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,7 +31,7 @@ public class UserController {
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<User> getUser(@PathVariable String username) {
+    public ResponseEntity<UserDTO> getUser(@PathVariable String username) {
         try {
             if (username == null || username.isEmpty()) {
                 throw new ApiRequestException("Username cannot be null or empty");
@@ -39,8 +41,9 @@ public class UserController {
             if (user == null) {
                 throw new ApiRequestException("User not found with username: " + username);
             }
+            UserDTO userDTO = UserMapper.INSTANCE.userToUserDTO(user);
 
-            return ResponseEntity.ok(user);
+            return ResponseEntity.ok(userDTO);
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {
@@ -70,13 +73,14 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<User> signup(@RequestBody User newUser) {
+    public ResponseEntity<UserDTO> signup(@RequestBody User newUser) {
         try {
             if (newUser.getUsername() == null || newUser.getPassword() == null) {
                 throw new ApiRequestException("Username and password are required for signup");
             }
             User createdUser = userService.createUser(newUser);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+            UserDTO userDTO = UserMapper.INSTANCE.userToUserDTO(createdUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {
@@ -91,13 +95,14 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<User> getProfile(@RequestParam String username) {
+    public ResponseEntity<UserDTO> getProfile(@RequestParam String username) {
         try {
             User user = userService.getUserByUsername(username);
             if (user == null) {
                 throw new ApiRequestException("User not found with username: " + username);
             }
-            return ResponseEntity.ok(user);
+            UserDTO userDTO = UserMapper.INSTANCE.userToUserDTO(user);
+            return ResponseEntity.ok(userDTO);
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {
