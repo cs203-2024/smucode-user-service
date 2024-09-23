@@ -15,7 +15,7 @@ import software.amazon.awssdk.core.exception.SdkException;
  * @description: Utility class for AWS services
  */
 @Component
-public class AWSUtils {
+public class AWSUtil {
     
     public static String getValueFromSecretsManager(String secretName) {
         SecretsManagerClient client = SecretsManagerClient.builder()
