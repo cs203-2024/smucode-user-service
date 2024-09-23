@@ -7,8 +7,10 @@ import com.cs203.smucode.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
@@ -27,6 +29,7 @@ import static org.mockito.Mockito.*;
  * This class contains test methods to verify the functionality of the UserServiceImpl.
  */
 
+@ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
     /** Mock object for UserRepository. */
     @Mock
@@ -46,8 +49,6 @@ public class UserServiceImplTest {
      */
     @BeforeEach
     public void setUp() {
-        System.out.println("Setting up test environment");
-        MockitoAnnotations.openMocks(this);
         userService = new UserServiceImpl(userRepository, passwordEncoder);
     }
 
