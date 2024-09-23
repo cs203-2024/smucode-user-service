@@ -29,14 +29,14 @@ public class AuthUserServiceImpl implements UserDetailsService {
             throw new UsernameNotFoundException("User not found");
         }
 
-        switch (user.getRole()) {
+        switch (user.getUserRole()) {
             case PLAYER:
                 return new PlayerUser(user);
             case ADMIN:
                 return new AdminUser(user);
             default:
                 throw new IllegalStateException(
-                    "Unknown user authority: " + user.getRole()
+                    "Unknown user authority: " + user.getUserRole()
                 );
         }
     }

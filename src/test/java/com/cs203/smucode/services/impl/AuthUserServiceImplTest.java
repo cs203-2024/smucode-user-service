@@ -1,5 +1,6 @@
 package com.cs203.smucode.services.impl;
 
+import com.cs203.smucode.mappers.UserMapper;
 import com.cs203.smucode.models.User;
 import com.cs203.smucode.models.PlayerUser;
 import com.cs203.smucode.models.AdminUser;
@@ -35,7 +36,10 @@ class AuthUserServiceImplTest {
     @DisplayName("Should load player user by username")
     void loadPlayerUserByUsername() {
         String username = "player1";
-        User user = new User(1L, username, "player@example.com", "password", null, UserRole.PLAYER);
+        User user = new User(1L, username,
+                "player@example.com", "password", "gyat",
+                 UserRole.PLAYER,
+                0.1, 0.2,0.3);
         when(userService.getUserByUsername(username)).thenReturn(user);
 
         UserDetails userDetails = authUserService.loadUserByUsername(username);
@@ -49,7 +53,10 @@ class AuthUserServiceImplTest {
     @DisplayName("Should load admin user by username")
     void loadAdminUserByUsername() {
         String username = "admin1";
-        User user = new User(2L, username, "admin@example.com", "password", null, UserRole.ADMIN);
+        User user = new User(2L, username,
+                "player@example.com", "password", "gyat",
+                UserRole.ADMIN,
+                0.1, 0.2,0.3);
         when(userService.getUserByUsername(username)).thenReturn(user);
 
         UserDetails userDetails = authUserService.loadUserByUsername(username);

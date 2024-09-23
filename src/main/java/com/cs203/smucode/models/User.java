@@ -21,13 +21,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String username;
+
+    @Column(unique = true)
     private String email;
     private String password;
-    private String displayImageUrl;
+    private String profileImageUrl;
 
     @Enumerated(EnumType.STRING)
-    private UserRole role;
+    private UserRole userRole;
 
     // TrueSkill attributes
     private double mu;

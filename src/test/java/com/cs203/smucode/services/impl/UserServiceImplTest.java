@@ -61,7 +61,10 @@ public class UserServiceImplTest {
     @DisplayName("Should retrieve user by username")
     void getUserByUsername() {
         String username = "testuser";
-        User user = new User(1L, username, "test@example.com", "password", null, UserRole.PLAYER);
+        User user = new User(1L, username,
+                "player@example.com", "password", "gyat",
+                UserRole.PLAYER,
+                0.1, 0.2,0.3);
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
         User result = userService.getUserByUsername(username);
@@ -79,7 +82,10 @@ public class UserServiceImplTest {
     @DisplayName("Should create user")
     void createUser() {
         String username = "newuser";
-        User user = new User(1L, username, "test@example.com", "password", null, UserRole.PLAYER);
+        User user = new User(1L, username,
+                "player@example.com", "password", "gyat",
+                UserRole.PLAYER,
+                0.1, 0.2,0.3);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
 

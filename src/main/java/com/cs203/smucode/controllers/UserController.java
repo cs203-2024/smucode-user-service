@@ -22,7 +22,6 @@ import de.gesundkrank.jskills.Rating;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-
     private final IUserService userService;
 
     @Autowired
@@ -73,14 +72,14 @@ public class UserController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<UserDTO> signup(@RequestBody User newUser) {
+    public ResponseEntity<UserDTO> signup(@RequestBody UserDTO dto) {
         try {
-            if (newUser.getUsername() == null || newUser.getPassword() == null) {
+            if (dto.username() == null || dto.password() == null) {
                 throw new ApiRequestException("Username and password are required for signup");
             }
-            User createdUser = userService.createUser(newUser);
-            UserDTO userDTO = UserMapper.INSTANCE.userToUserDTO(createdUser);
-            return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
+            User createdUser = UserMapper.INSTANCE.userDTOtoUser(dto);
+            userService.createUser(createdUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {

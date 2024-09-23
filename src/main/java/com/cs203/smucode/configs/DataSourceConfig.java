@@ -18,11 +18,11 @@ import org.springframework.context.annotation.Profile;
 import javax.sql.DataSource;
 
 @Configuration
-@Profile("!test")
+@Profile("dev")
 public class DataSourceConfig {
     // AWS-related configuration properties
-    @Value("${aws.rds.instance.identifier}")
-    private String dbInstanceIdentifier; // Identifier for the RDS instance
+    @Value("${aws.rds.db.identifier}")
+    private String identifier;
 
     @Value("${aws.region}")
     private String awsRegion; // AWS region where the RDS instance is located
@@ -30,8 +30,8 @@ public class DataSourceConfig {
     @Value("${spring.datasource.username}")
     private String dbUsername; // Database username
 
-    @Value("${aws.secretsmanager.db.password.secret}")
-    private String dbPasswordSecretName; // Name of the secret in AWS Secrets Manager that stores the database password
+    @Value("${aws.secretsmanager.db.secret}")
+    private String awsSecret; // Name of the secret in AWS Secrets Manager that stores the database password
     
     @Bean
     public DataSource dataSource() {
@@ -43,7 +43,7 @@ public class DataSourceConfig {
 
         // Create a request to describe the RDS instance
         DescribeDbInstancesRequest request = DescribeDbInstancesRequest.builder()
-                .dbInstanceIdentifier(dbInstanceIdentifier) // Specify which RDS instance to describe
+                .dbInstanceIdentifier(identifier) // Specify which RDS instance to describe
                 .build();
         
         // Send the request and get the response
@@ -57,7 +57,7 @@ public class DataSourceConfig {
                 dbInstance.dbName()); // Database name
 
         // Retrieve the database password from AWS Secrets Manager
-        String dbPassword = AWSUtil.getValueFromSecretsManager(dbPasswordSecretName);
+        String dbPassword = AWSUtil.getValueFromSecretsManager(awsSecret);
 
         // Configure HikariCP connection pool
         HikariConfig config = new HikariConfig();
