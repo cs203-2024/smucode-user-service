@@ -5,8 +5,13 @@ import com.cs203.smucode.mappers.UserMapper;
 import com.cs203.smucode.models.User;
 import com.cs203.smucode.models.UserDTO;
 import com.cs203.smucode.services.IUserService;
+import com.cs203.smucode.services.impl.AuthUserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -15,18 +20,23 @@ import de.gesundkrank.jskills.Rating;
 
 /**
  * @author: jere
- * @version: 1.1
- * @since: 2024-09-07
+ * @version: 1.2
+ * @since: 2024-09-26
  */
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
     private final IUserService userService;
+    private final UserDetailsService authUserService;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Autowired
-    public UserController(IUserService userService) {
+    public UserController(IUserService userService, AuthUserServiceImpl authUserService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
+        this.authUserService = authUserService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/{username}")
@@ -51,19 +61,20 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    //assuming no DTO for login deets
-    public ResponseEntity<String> login(@RequestBody Map<String, String> credentials) {
+    public ResponseEntity<String> login(@RequestBody UserDTO userDTO) {
         try {
-            String username = credentials.get("username");
-            String password = credentials.get("password");
+            String username = userDTO.username();
+            String password = userDTO.password();
             if (username == null || password == null) {
                 throw new ApiRequestException("Username and password are required");
             }
-            User user = userService.getUserByUsername(username);
-            if (user == null) {
+            UserDetails userDetails = authUserService.loadUserByUsername(username);
+            if (!passwordEncoder.matches(password, userDetails.getPassword())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
             }
             return ResponseEntity.ok("User logged in successfully");
+        } catch (UsernameNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {
