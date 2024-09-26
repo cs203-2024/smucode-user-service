@@ -33,7 +33,7 @@ public class UserController {
 
 
     @Autowired
-    public UserController(IUserService userService, AuthUserServiceImpl authUserService, PasswordEncoder passwordEncoder) {
+    public UserController(IUserService userService, UserDetailsService authUserService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.authUserService = authUserService;
         this.passwordEncoder = passwordEncoder;
@@ -70,7 +70,7 @@ public class UserController {
             }
             UserDetails userDetails = authUserService.loadUserByUsername(username);
             if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ensure that you have typed the username and password correctly");
             }
             return ResponseEntity.ok("User logged in successfully");
         } catch (UsernameNotFoundException e) {
