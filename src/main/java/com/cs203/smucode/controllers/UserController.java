@@ -2,18 +2,24 @@ package com.cs203.smucode.controllers;
 
 import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.mappers.UserMapper;
+import com.cs203.smucode.models.JwtUserDTO;
 import com.cs203.smucode.models.User;
 import com.cs203.smucode.models.UserDTO;
 import com.cs203.smucode.services.IUserService;
-import com.cs203.smucode.services.impl.AuthUserServiceImpl;
+import com.cs203.smucode.utils.JWTUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
 
 import java.util.Map;
 import de.gesundkrank.jskills.Rating;
@@ -27,16 +33,18 @@ import de.gesundkrank.jskills.Rating;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    private final IUserService userService;
-    private final UserDetailsService authUserService;
-    private final PasswordEncoder passwordEncoder;
+    private static Logger logger = LoggerFactory.getLogger(UserController.class);
 
+    private final IUserService userService;
+    private final JWTUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
 
     @Autowired
-    public UserController(IUserService userService, UserDetailsService authUserService, PasswordEncoder passwordEncoder) {
+    public UserController(IUserService userService, AuthenticationManager
+            authenticationManager, JWTUtil jwtUtil) {
         this.userService = userService;
-        this.authUserService = authUserService;
-        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
     }
 
     @GetMapping("/{username}")
@@ -61,23 +69,41 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<JwtUserDTO> login(@RequestBody UserDTO userDTO) {
         try {
             String username = userDTO.username();
             String password = userDTO.password();
             if (username == null || password == null) {
                 throw new ApiRequestException("Username and password are required");
             }
-            UserDetails userDetails = authUserService.loadUserByUsername(username);
-            if (!passwordEncoder.matches(password, userDetails.getPassword())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ensure that you have typed the username and password correctly");
-            }
-            return ResponseEntity.ok("User logged in successfully");
+
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(userDTO.username(), userDTO.password())
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            return ResponseEntity.ok(new JwtUserDTO(
+                    "success",
+                    userDTO, jwtUtil.generateToken(authentication))
+            );
         } catch (UsernameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new JwtUserDTO(
+                            "Invalid username or password",
+                            null, null)
+                    );
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new JwtUserDTO(
+                            "Ensure that you have typed the username and password correctly",
+                            null, null)
+                    );
         } catch (ApiRequestException e) {
+            logger.info(e.getMessage(), e);
             throw e;
         } catch (Exception e) {
+            logger.info(e.getMessage(), e);
             throw new ApiRequestException("An error occurred during login", e);
         }
     }
