@@ -1,6 +1,5 @@
 package com.cs203.smucode.configs;
 
-import com.cs203.smucode.utils.AWSUtil;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Value;

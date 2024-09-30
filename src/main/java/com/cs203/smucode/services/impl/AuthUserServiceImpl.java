@@ -3,7 +3,6 @@ package com.cs203.smucode.services.impl;
 import com.cs203.smucode.models.AdminUser;
 import com.cs203.smucode.models.PlayerUser;
 import com.cs203.smucode.models.User;
-import com.cs203.smucode.models.UserRole;
 import com.cs203.smucode.services.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
