@@ -82,6 +82,7 @@ public class UserController {
             );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            userDTO = UserMapper.INSTANCE.userToUserDTO(userService.getUserByUsername(username));
 
             return ResponseEntity.ok(new JwtUserDTO(
                     "success",
