@@ -32,8 +32,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class JWTUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(JWTUtil.class);
-
     @Value("${jwt.expiration}")
     private long expirationTime;
 
@@ -54,7 +52,7 @@ public class JWTUtil {
         String privateKeyStr = AWSUtil.getValueFromSecretsManager(
             "JWTPrivateKey"
         );
-        logger.info("Fetched JWT private key: {}", privateKeyStr);
+
         byte[] privateKeyBytes = Base64.getDecoder().decode(privateKeyStr);
 
         PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(
