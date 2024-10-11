@@ -16,7 +16,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -68,8 +70,10 @@ public class JWTUtil {
      * @param auth the Authentication object containing user details
      * @return a String representation of the signed JWT token (for Bearer)
      */
-    public String generateToken(Authentication auth) throws JOSEException {
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+    public String generateToken(Authentication auth) throws JOSEException, AuthenticationException {
+        if (!(auth.getPrincipal() instanceof UserDetails userDetails)) {
+            throw new AuthenticationServiceException("UserDetails not found, got " + auth.getPrincipal().getClass().getName());
+        }
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
             .subject(auth.getName())
