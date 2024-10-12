@@ -12,9 +12,9 @@ RUN chown -R spring:spring /app
 
 USER spring
 
-EXPOSE 8080 8761
+EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget -q --spider http://localhost:8761/actuator/health || exit 1
+  CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
 
 ENTRYPOINT ["java", "-jar", "smucode-user-service.jar"]
