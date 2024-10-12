@@ -1,12 +1,14 @@
 package com.cs203.smucode.utils;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
-import software.amazon.awssdk.core.exception.SdkException;
 
 /**
  * @author: gav
@@ -16,17 +18,23 @@ import software.amazon.awssdk.core.exception.SdkException;
  */
 @Component
 public class AWSUtil {
-    
-    public static String getValueFromSecretsManager(String secretName) {
-        SecretsManagerClient client = SecretsManagerClient.builder()
-                .region(Region.AP_SOUTHEAST_1)
-                .credentialsProvider(DefaultCredentialsProvider.create())
-                .build();
+    private final AwsCredentialsProvider awsCredentialsProvider;
 
-        GetSecretValueRequest secretValueRequest = GetSecretValueRequest.builder()
-                .secretId(secretName)
-                .build();
-        
+    @Autowired
+    public AWSUtil(AwsCredentialsProvider awsCredentialsProvider) {
+        this.awsCredentialsProvider = awsCredentialsProvider;
+    }
+    public String getValueFromSecretsManager(
+        String secretName
+    ) {
+        SecretsManagerClient client = SecretsManagerClient.builder()
+            .region(Region.AP_SOUTHEAST_1)
+            .credentialsProvider(DefaultCredentialsProvider.create())
+            .build();
+
+        GetSecretValueRequest secretValueRequest =
+            GetSecretValueRequest.builder().secretId(secretName).build();
+
         GetSecretValueResponse secretValueResponse = null;
 
         try {
@@ -34,11 +42,15 @@ public class AWSUtil {
         } catch (SdkException e) {
             e.printStackTrace(); // TODO: handle exception -> add logging
         }
-        
+
         if (secretValueResponse == null) {
             return null;
         }
-        
+
         return secretValueResponse.secretString();
+    }
+
+    public AwsCredentialsProvider getAwsCredentialsProvider() {
+        return awsCredentialsProvider;
     }
 }

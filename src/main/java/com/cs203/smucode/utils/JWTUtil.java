@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
@@ -22,6 +23,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 /**
  * @author: gav
@@ -38,30 +40,11 @@ public class JWTUtil {
     /**
      * RSA signer used to sign the JWT tokens.
      */
-    private RSASSASigner rsaSigner;
+    private final RSASSASigner rsaSigner;
 
-    /**
-     * Initializes by setting up the RSA signer with a private key fetched from AWS Secrets Manager.
-     *
-     * @throws InvalidKeySpecException if the private key specification is invalid
-     * @throws NoSuchAlgorithmException if the RSA algorithm is not available
-     */
-    @PostConstruct
-    public void init()
-        throws InvalidKeySpecException, NoSuchAlgorithmException {
-        String privateKeyStr = AWSUtil.getValueFromSecretsManager(
-            "JWTPrivateKey"
-        );
-
-        byte[] privateKeyBytes = Base64.getDecoder().decode(privateKeyStr);
-
-        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(
-            privateKeyBytes
-        );
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
-
-        rsaSigner = new RSASSASigner(privateKey);
+    @Autowired
+    public JWTUtil(RSASSASigner rsaSigner) {
+        this.rsaSigner = rsaSigner;
     }
 
     /**
