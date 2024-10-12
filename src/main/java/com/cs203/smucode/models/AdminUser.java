@@ -1,12 +1,13 @@
 package com.cs203.smucode.models;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import java.util.Collection;
 import java.util.List;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public class AdminUser implements UserDetails {
+
     private final User user;
 
     public AdminUser(User user) {
@@ -15,9 +16,9 @@ public class AdminUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
     }
-    
+
     @Override
     public String getPassword() {
         return user.getPassword();
