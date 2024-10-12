@@ -46,7 +46,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       
       - name: Build with Maven
-        run: mvn clean package -Dspring.profiles.active=${{ env.SPRING_PROFILE }} -Daws.role.arn=${{ secrets.AWS_ROLE }}
+        run: mvn clean package -Dspring.profiles.active=${{ env.SPRING_PROFILE }}
 
       - name: Login to Amazon ECR
         id: login-ecr
