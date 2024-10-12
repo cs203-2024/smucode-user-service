@@ -1,4 +1,4 @@
-FROM openjdk:17.0.2-slim
+FROM eclipse-temurin:17-jre-jammy
 
 # Add a non-root user
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
