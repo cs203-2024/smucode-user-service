@@ -20,13 +20,11 @@ public class AWSConfig {
     @Value("${aws.role.arn}")
     private String roleArn;
 
-    @Value("${aws.region}")
-    private String awsRegion;
     @Bean
     public AwsCredentialsProvider awsCredentialsProvider() {
         if (roleArn != null && !roleArn.isEmpty()) {
             StsClient stsClient = StsClient.builder()
-                    .region(Region.of(awsRegion))
+                    .region(Region.AP_SOUTHEAST_1)
                     .build();
 
             AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()

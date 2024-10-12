@@ -24,6 +24,3 @@ eureka:
 
 jwt:
   expiration: 600000
-
-aws:
-  region: ap-southeast-1
