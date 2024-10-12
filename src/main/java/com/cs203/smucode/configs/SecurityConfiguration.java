@@ -41,11 +41,10 @@ public class SecurityConfiguration {
         throws Exception {
         http.authorizeHttpRequests(auth ->
             auth
-                .requestMatchers(
-                    "/api/users/logout",
-                    "/api/users/{username}/update-rating"
-                )
-                .authenticated()
+                .requestMatchers("/api/users/logout")
+                .hasAnyRole("PLAYER", "ADMIN")
+                .requestMatchers("/api/users/{username}/update-rating")
+                .hasRole("ADMIN")
                 .anyRequest()
                 .permitAll()
         );
