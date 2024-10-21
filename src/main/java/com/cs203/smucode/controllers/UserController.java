@@ -3,7 +3,6 @@ package com.cs203.smucode.controllers;
 import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.mappers.UserMapper;
 import com.cs203.smucode.models.User;
-import com.cs203.smucode.models.UserDTO;
 import com.cs203.smucode.models.UserInfoDTO;
 import com.cs203.smucode.services.IUserService;
 import org.slf4j.Logger;
