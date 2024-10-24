@@ -91,7 +91,6 @@ public class UserController {
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {
-            logger.error("error updating rating", e);
             throw new ApiRequestException("An error occurred while updating the user's rating");
         }
     }
