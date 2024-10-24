@@ -20,6 +20,9 @@ public record UserInfoDTO (
     @ValidURL
     String profileImageUrl,
 
+    int wins,
+    int losses,
+
     double mu,
     double sigma,
     double skillIndex
