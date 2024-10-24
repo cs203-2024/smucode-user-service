@@ -1,23 +1,20 @@
 package com.cs203.smucode.services.impl;
 
-import com.cs203.smucode.models.User;
-import com.cs203.smucode.models.UserRole;
-import com.cs203.smucode.repositories.UserRepository;
+import com.cs203.smucode.models.UserProfile;
+import com.cs203.smucode.repositories.UserProfileRepository;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 /**
@@ -33,11 +30,7 @@ import static org.mockito.Mockito.*;
 public class UserServiceImplTest {
     /** Mock object for UserRepository. */
     @Mock
-    private UserRepository userRepository;
-
-    /** Mock object for PasswordEncoder. */
-    @Mock
-    private PasswordEncoder passwordEncoder;
+    private UserProfileRepository userProfileRepository;
 
     /** The UserServiceImpl instance to be tested. */
     private UserServiceImpl userService;
@@ -49,11 +42,11 @@ public class UserServiceImplTest {
      */
     @BeforeEach
     public void setUp() {
-        userService = new UserServiceImpl(userRepository, passwordEncoder);
+        userService = new UserServiceImpl(userProfileRepository);
     }
 
     /**
-     * Tests the {@link UserServiceImpl#getUserByUsername(String)} method.
+     * Tests the {@link UserServiceImpl#getUserProfileByUsername(String)} method.
      * 
      * Verifies that the method correctly retrieves a user by their username.
      */
@@ -61,20 +54,20 @@ public class UserServiceImplTest {
     @DisplayName("Should retrieve user by username")
     void getUserByUsername() {
         String username = "testuser";
-        User user = new User(1L, username,
-                "player@example.com", "password", "gyat",
-                UserRole.PLAYER,
+        UserProfile user = new UserProfile(UUID.randomUUID(), username,
+                "player@example.com", null,
+                0, 0,
                 0.1, 0.2,0.3);
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(userProfileRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
-        User result = userService.getUserByUsername(username);
+        UserProfile result = userService.getUserProfileByUsername(username);
 
         assertNotNull(result);
         assertEquals(username, result.getUsername());
     }
 
     /**
-     * Tests the {@link UserServiceImpl#createUser(User)} method.
+     * Tests the {@link UserServiceImpl#createUserProfile(UserProfile)} method.
      * 
      * Verifies that the method correctly creates a new user with an encoded password.
      */
@@ -82,31 +75,29 @@ public class UserServiceImplTest {
     @DisplayName("Should create user")
     void createUser() {
         String username = "newuser";
-        User user = new User(1L, username,
-                "player@example.com", "password", "gyat",
-                UserRole.PLAYER,
+        UserProfile userProfile = new UserProfile(UUID.fromString("ff6218d9-8bc1-460f-b3f3-9b2ac4f4561b"), username,
+                "player@example.com", null,
+                0,0,
                 0.1, 0.2,0.3);
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userProfileRepository.save(any(UserProfile.class))).thenReturn(userProfile);
 
-        User result = userService.createUser(user);
+        UserProfile result = userService.createUserProfile(userProfile);
 
         assertNotNull(result);
         assertEquals(username, result.getUsername());
-        verify(passwordEncoder).encode("password");
-        verify(userRepository).save(user);
+        verify(userProfileRepository).save(userProfile);
     }
 
     /**
-     * Tests the {@link UserServiceImpl#deleteUser(Long)} method.
+     * Tests the {@link UserServiceImpl#deleteUserProfile(UUID)} method.
      * 
      * Verifies that the method correctly calls the repository to delete a user by their ID.
      */
     @Test
     @DisplayName("Should delete user")
     void deleteUser() {
-        Long userId = 1L;
-        userService.deleteUser(userId);
-        verify(userRepository).deleteById(userId);
+        UUID userId = UUID.fromString("ff6218d9-8bc1-460f-b3f3-9b2ac4f4561b");
+        userService.deleteUserProfile(userId);
+        verify(userProfileRepository).deleteById(userId);
     }
 }

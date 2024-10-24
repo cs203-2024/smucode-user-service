@@ -8,6 +8,3 @@ logging:
 eureka:
   client:
     enabled: false
-
-jwt:
-  expiration: 600000
