@@ -18,39 +18,28 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
  */
 @Component
 public class AWSUtil {
-    private final AwsCredentialsProvider awsCredentialsProvider;
 
-    @Autowired
-    public AWSUtil(AwsCredentialsProvider awsCredentialsProvider) {
-        this.awsCredentialsProvider = awsCredentialsProvider;
+    private AWSUtil() {
+        throw new IllegalStateException("Utility class");
     }
-    public String getValueFromSecretsManager(
-        String secretName
-    ) {
-        SecretsManagerClient client = SecretsManagerClient.builder()
-            .region(Region.AP_SOUTHEAST_1)
-            .credentialsProvider(DefaultCredentialsProvider.create())
-            .build();
 
-        GetSecretValueRequest secretValueRequest =
-            GetSecretValueRequest.builder().secretId(secretName).build();
+    public static String getValueFromSecretsManager(String secretName) {
+        try (
+            SecretsManagerClient client = SecretsManagerClient.builder()
+                    .region(Region.AP_SOUTHEAST_1)
+                    .credentialsProvider(DefaultCredentialsProvider.create())
+                    .build();
+        ) {
+            GetSecretValueRequest secretValueRequest =
+                    GetSecretValueRequest.builder().secretId(secretName).build();
 
-        GetSecretValueResponse secretValueResponse = null;
-
-        try {
-            secretValueResponse = client.getSecretValue(secretValueRequest);
+            GetSecretValueResponse secretValueResponse =
+                    client.getSecretValue(secretValueRequest);
+            return secretValueResponse.secretString();
         } catch (SdkException e) {
-            e.printStackTrace(); // TODO: handle exception -> add logging
+            throw new IllegalStateException("Error occurred with AWS", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Error occurred when fetching secret", e);
         }
-
-        if (secretValueResponse == null) {
-            return null;
-        }
-
-        return secretValueResponse.secretString();
-    }
-
-    public AwsCredentialsProvider getAwsCredentialsProvider() {
-        return awsCredentialsProvider;
     }
 }

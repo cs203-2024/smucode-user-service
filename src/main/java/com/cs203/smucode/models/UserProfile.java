@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 /**
  * @author: gav
  * @version: 1.0
@@ -14,26 +16,26 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
-public class User {
+@Table(name = "user_profile")
+public class UserProfile {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Column(unique = true)
     private String username;
 
     @Column(unique = true)
     private String email;
-    private String password;
     private String profileImageUrl;
 
-    @Enumerated(EnumType.STRING)
-    private UserRole userRole;
+    // Profile attributes
+    private int wins;
+    private int losses;
 
     // TrueSkill attributes
     private double mu;
     private double sigma;
     private double skillIndex;
+
 }

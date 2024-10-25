@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.model.DBInstance;
@@ -30,11 +31,11 @@ public class DataSourceConfig {
     private String awsSecret; // Name of the secret in AWS Secrets Manager that stores the database password
 
     @Bean
-    public DataSource dataSource(AWSUtil awsUtil) {
+    public DataSource dataSource() {
         // Create an RDS client to interact with AWS RDS service
 
         RdsClient rdsClient = RdsClient.builder()
-            .credentialsProvider(awsUtil.getAwsCredentialsProvider()) // Use AWS credentials provider chain
+            .credentialsProvider(DefaultCredentialsProvider.create()) // Use AWS credentials provider chain
             .region(Region.AP_SOUTHEAST_1) // Set the AWS region
             .build();
 
@@ -59,7 +60,7 @@ public class DataSourceConfig {
         ); // Database name
 
         // Retrieve the database password from AWS Secrets Manager
-        String dbPassword = awsUtil.getValueFromSecretsManager(awsSecret);
+        String dbPassword = AWSUtil.getValueFromSecretsManager(awsSecret);
 
         // Configure HikariCP connection pool
         HikariConfig config = new HikariConfig();
