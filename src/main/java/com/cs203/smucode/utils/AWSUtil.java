@@ -16,7 +16,6 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
  * @since: 24-09-06
  * @description: Utility class for AWS services
  */
-@Component
 public class AWSUtil {
 
     private AWSUtil() {
