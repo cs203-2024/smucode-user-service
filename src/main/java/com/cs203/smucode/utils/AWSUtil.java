@@ -19,6 +19,10 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 @Component
 public class AWSUtil {
 
+    private AWSUtil() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static String getValueFromSecretsManager(String secretName) {
         try (
             SecretsManagerClient client = SecretsManagerClient.builder()
@@ -33,9 +37,9 @@ public class AWSUtil {
                     client.getSecretValue(secretValueRequest);
             return secretValueResponse.secretString();
         } catch (SdkException e) {
-            throw new RuntimeException("Error occurred with AWS", e);
+            throw new IllegalStateException("Error occurred with AWS", e);
         } catch (Exception e) {
-            throw new RuntimeException("Error occurred when fetching secret", e);
+            throw new IllegalStateException("Error occurred when fetching secret", e);
         }
     }
 }

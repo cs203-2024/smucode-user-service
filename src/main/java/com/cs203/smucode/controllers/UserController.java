@@ -2,10 +2,10 @@ package com.cs203.smucode.controllers;
 
 import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.mappers.UserProfileMapper;
-import com.cs203.smucode.models.UserIdentificationDTO;
-import com.cs203.smucode.models.UserInfoDTO;
+import com.cs203.smucode.dto.UserIdentificationDTO;
+import com.cs203.smucode.dto.UserInfoDTO;
 import com.cs203.smucode.models.UserProfile;
-import com.cs203.smucode.models.UserRatingDTO;
+import com.cs203.smucode.dto.UserRatingDTO;
 import com.cs203.smucode.services.IUserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;

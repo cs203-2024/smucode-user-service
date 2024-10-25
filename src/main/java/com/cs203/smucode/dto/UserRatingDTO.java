@@ -1,8 +1,6 @@
-package com.cs203.smucode.models;
+package com.cs203.smucode.dto;
 
 import jakarta.validation.constraints.NotNull;
-
-import java.util.UUID;
 
 public record UserRatingDTO(
 

@@ -1,4 +1,4 @@
-package com.cs203.smucode.models;
+package com.cs203.smucode.dto;
 
 import com.cs203.smucode.security.ValidURL;
 import jakarta.validation.constraints.Email;
