@@ -54,7 +54,7 @@ public class UserController {
     }
 
     @PostMapping("/profile/create")
-    public ResponseEntity<String> createUser(@RequestBody UserIdentificationDTO userIdentificationDTO) {
+    public ResponseEntity<String> createUser(@RequestBody @Valid UserIdentificationDTO userIdentificationDTO) {
         try {
             validateUsername(userIdentificationDTO.username());
 
@@ -75,6 +75,20 @@ public class UserController {
             throw e;
         } catch (Exception e) {
             throw new ApiRequestException("An error occurred while fetching the user profile");
+        }
+    }
+
+    @PostMapping("/profile/delete")
+    public ResponseEntity<String> deleteUser(@RequestBody @Valid UserIdentificationDTO userIdentificationDTO) {
+        try {
+            validateUsername(userIdentificationDTO.username());
+            userService.deleteUserProfile(userIdentificationDTO.id());
+
+            return ResponseEntity.ok("Deleted user profile '" + userIdentificationDTO.username() + "'.");
+        } catch (ApiRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiRequestException("An error occurred while deleting the user profile");
         }
     }
 
