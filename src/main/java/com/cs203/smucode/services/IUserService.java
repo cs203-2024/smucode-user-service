@@ -11,4 +11,8 @@ public interface IUserService {
     UserProfile createUserProfile(UserProfile userProfile);
     void deleteUserProfile(UUID id);
     void updateUserRating(String username, Rating newRating);
+
+    void updateUserWin(String username);
+    void updateUserLoss(String username);
+
 }
