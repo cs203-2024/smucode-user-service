@@ -6,13 +6,15 @@ import com.cs203.smucode.services.IUserService;
 import com.cs203.smucode.models.UserProfile;
 import com.cs203.smucode.repositories.UserProfileRepository;
 
+import com.cs203.smucode.utils.AWSUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.gesundkrank.jskills.Rating;
+import software.amazon.awssdk.regions.Region;
 
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -58,6 +60,17 @@ public class UserServiceImpl implements IUserService {
         userProfileRepository.deleteById(id);
     }
 
+    // Profile picture related
+    @Override
+    @Transactional
+    public void uploadProfilePicture(String username, String imageUrl) {
+        UserProfile userProfile = userProfileRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Profile not found"));
+
+        userProfile.setProfileImageUrl(imageUrl);
+        userProfileRepository.save(userProfile);
+    }
+
     //trueSkill-related methods
     @Override
     @Transactional
@@ -69,6 +82,7 @@ public class UserServiceImpl implements IUserService {
         userProfile.setSkillIndex(calculateSkillIndex(userProfile.getMu(), userProfile.getSigma()));
         userProfileRepository.save(userProfile);
     }
+
     @Override
     @Transactional
     public void updateUserWin(String username) {

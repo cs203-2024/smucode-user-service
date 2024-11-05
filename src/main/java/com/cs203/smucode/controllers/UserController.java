@@ -1,5 +1,6 @@
 package com.cs203.smucode.controllers;
 
+import com.cs203.smucode.constants.MediaConstants;
 import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.mappers.UserProfileMapper;
 import com.cs203.smucode.dto.UserIdentificationDTO;
@@ -7,10 +8,14 @@ import com.cs203.smucode.dto.UserInfoDTO;
 import com.cs203.smucode.models.UserProfile;
 import com.cs203.smucode.dto.UserRatingDTO;
 import com.cs203.smucode.services.IUserService;
+import com.cs203.smucode.utils.AWSUtil;
+import com.nimbusds.jwt.proc.BadJWTException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -30,10 +35,12 @@ public class UserController {
     private static Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final IUserService userService;
+    private final AWSUtil awsUtil;
 
     @Autowired
-    public UserController(IUserService userService) {
+    public UserController(IUserService userService, AWSUtil awsUtil) {
         this.userService = userService;
+        this.awsUtil = awsUtil;
     }
 
 
@@ -89,6 +96,35 @@ public class UserController {
             throw e;
         } catch (Exception e) {
             throw new ApiRequestException("An error occurred while deleting the user profile");
+        }
+    }
+
+    @PostMapping("/upload-picture")
+    public ResponseEntity<String> deleteUser(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam String contentType
+    ) {
+        if (jwt == null) {
+            throw new IllegalStateException("Invalid JWT");
+        }
+        if (contentType == null || contentType.isEmpty()) {
+            throw new ApiRequestException("Please provide a valid content type");
+        }
+
+        if (!MediaConstants.SUPPORTED_MEDIA.contains(contentType)) {
+            throw new ApiRequestException("Unsupported content type: " + contentType);
+        }
+
+        try {
+            String username = jwt.getClaimAsString("username");
+            String imageUrl = awsUtil.getObjectUrl(username);
+            userService.uploadProfilePicture(username, imageUrl);
+
+            return ResponseEntity.ok(awsUtil.generatePresignedUrl(username, contentType));
+        } catch (ApiRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiRequestException("An error occurred while uploading the profile picture");
         }
     }
 
