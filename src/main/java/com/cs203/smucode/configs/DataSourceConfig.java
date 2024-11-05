@@ -31,7 +31,7 @@ public class DataSourceConfig {
     private String awsSecret; // Name of the secret in AWS Secrets Manager that stores the database password
 
     @Bean
-    public DataSource dataSource() {
+    public DataSource dataSource(AWSUtil awsUtil) {
         // Create an RDS client to interact with AWS RDS service
 
         RdsClient rdsClient = RdsClient.builder()
@@ -60,7 +60,7 @@ public class DataSourceConfig {
         ); // Database name
 
         // Retrieve the database password from AWS Secrets Manager
-        String dbPassword = AWSUtil.getValueFromSecretsManager(awsSecret);
+        String dbPassword = awsUtil.getValueFromSecretsManager(awsSecret);
 
         // Configure HikariCP connection pool
         HikariConfig config = new HikariConfig();
