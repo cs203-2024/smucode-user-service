@@ -109,6 +109,34 @@ public class UserController {
         }
     }
 
+    @PutMapping("/update-win/{username}")
+    public ResponseEntity<String> updateWin(@PathVariable String username) {
+        try {
+            validateUsername(username);
+            userService.updateUserWin(username);
+
+            return ResponseEntity.ok("User win count updated successfully");
+        } catch (ApiRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiRequestException("An error occurred while updating the user's win count");
+        }
+    }
+
+    @PutMapping("/update-loss/{username}")
+    public ResponseEntity<String> updateLoss(@PathVariable String username) {
+        try {
+            validateUsername(username);
+            userService.updateUserLoss(username);
+
+            return ResponseEntity.ok("User loss count updated successfully");
+        } catch (ApiRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiRequestException("An error occurred while updating the user's loss count");
+        }
+    }
+
     private void validateUsername(String username) {
         if (username == null || username.isEmpty()) {
             throw new ApiRequestException("Username cannot be null or empty");

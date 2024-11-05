@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -100,4 +101,52 @@ public class UserServiceImplTest {
         userService.deleteUserProfile(userId);
         verify(userProfileRepository).deleteById(userId);
     }
+
+//    @Test
+//    @DisplayName("Should increment win")
+//    void
+    @Test
+    @DisplayName("Should increment user's wins")
+    void updateWin() {
+        // Arrange
+        String username = "player";
+        UserProfile user = new UserProfile(UUID.randomUUID(), username,
+                "player@example.com", null,
+                0, 0,  // initial wins and losses
+                0.1, 0.2, 0.3);
+
+        when(userProfileRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(userProfileRepository.save(any(UserProfile.class))).thenReturn(user);
+
+        // Act
+        userService.updateUserWin(username);
+
+        // Assert
+        verify(userProfileRepository).save(user);
+        assertEquals(1, user.getWins(), "Win count should be incremented by 1");
+        assertEquals(0, user.getLosses(), "Loss count should remain unchanged");
+    }
+
+    @Test
+    @DisplayName("Should increment user's losses")
+    void updateLoss() {
+        // Arrange
+        String username = "player";
+        UserProfile user = new UserProfile(UUID.randomUUID(), username,
+                "player@example.com", null,
+                0, 0,  // initial wins and losses
+                0.1, 0.2, 0.3);
+
+        when(userProfileRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(userProfileRepository.save(any(UserProfile.class))).thenReturn(user);
+
+        // Act
+        userService.updateUserLoss(username);
+
+        // Assert
+        verify(userProfileRepository).save(user);
+        assertEquals(1, user.getLosses(), "Loss count should be incremented by 1");
+        assertEquals(0, user.getWins(), "Win count should remain unchanged");
+    }
+
 }

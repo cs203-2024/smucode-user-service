@@ -69,6 +69,25 @@ public class UserServiceImpl implements IUserService {
         userProfile.setSkillIndex(calculateSkillIndex(userProfile.getMu(), userProfile.getSigma()));
         userProfileRepository.save(userProfile);
     }
+    @Override
+    @Transactional
+    public void updateUserWin(String username) {
+        UserProfile userProfile = userProfileRepository.findByUsername(username)
+                .orElseThrow(() -> new ApiRequestException("User not found with username: " + username));
+
+        userProfile.setWins(userProfile.getWins() + 1);
+        userProfileRepository.save(userProfile);
+    }
+
+    @Override
+    @Transactional
+    public void updateUserLoss(String username) {
+        UserProfile userProfile = userProfileRepository.findByUsername(username)
+                .orElseThrow(() -> new ApiRequestException("User not found with username: " + username));
+
+        userProfile.setLosses(userProfile.getLosses() + 1);
+        userProfileRepository.save(userProfile);
+    }
 
     private double calculateSkillIndex(double mu, double sigma) {
         return mu - TrueSkillConstants.K_FACTOR * sigma;
