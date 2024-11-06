@@ -2,6 +2,7 @@ package com.cs203.smucode.controllers;
 
 import com.cs203.smucode.constants.MediaConstants;
 import com.cs203.smucode.constants.OAuth2Constants;
+import com.cs203.smucode.dto.UploadLinkResponseDTO;
 import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.mappers.UserProfileMapper;
 import com.cs203.smucode.dto.UserIdentificationDTO;
@@ -102,7 +103,7 @@ public class UserController {
     }
 
     @PostMapping("/generate-upload-link")
-    public ResponseEntity<String> generatePresignedUrl(
+    public ResponseEntity<UploadLinkResponseDTO> generatePreSignedUrl(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam String contentType
     ) {
@@ -119,7 +120,12 @@ public class UserController {
 
         try {
             String username = jwt.getClaimAsString(OAuth2Constants.SUBJECT);
-            return ResponseEntity.ok(awsUtil.generatePresignedUrl(username, contentType));
+            String preSignedUrl = awsUtil.generatePresignedUrl(username, contentType);
+            String key = awsUtil.getKey(username);
+
+            return ResponseEntity.ok(
+                    new UploadLinkResponseDTO(key, preSignedUrl)
+            );
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {
@@ -128,11 +134,24 @@ public class UserController {
     }
 
     @PostMapping("/upload-picture")
-    public ResponseEntity<String> uploadPicture(@AuthenticationPrincipal Jwt jwt) {
-        validateJwt(jwt);
-
+    public ResponseEntity<String> uploadPicture(@AuthenticationPrincipal Jwt jwt,
+                                                @RequestParam String key) {
         try {
+            validateJwt(jwt);
+            if (key == null || key.isEmpty()) {
+                throw new ApiRequestException("Please provide a non-empty or null key");
+            }
+
+            if (!key.startsWith("profile-picture/")) {
+                throw new ApiRequestException("Invalid key: " + key + ", please provide a valid key");
+            }
+
             String username = jwt.getClaimAsString(OAuth2Constants.SUBJECT);
+
+            if (!awsUtil.getKey(username).equals(key)) {
+                throw new ApiRequestException("Input key does not match generated key");
+            }
+
             String imageUrl = awsUtil.getObjectUrl(username);
             userService.uploadProfilePicture(username, imageUrl);
 

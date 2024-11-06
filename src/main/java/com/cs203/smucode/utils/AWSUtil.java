@@ -91,11 +91,15 @@ public class AWSUtil {
     }
 
     public String getObjectUrl(String username) {
-        if (usernameToKeyMap.get(username) == null) {
-            throw new IllegalStateException("Username " + username + " does not have an existing image");
+        if (this.getKey(username) == null) {
+            throw new IllegalStateException("Username " + username + " does not have an existing upload link");
         }
 
         return String.format("https://%s.s3.%s.amazonaws.com/%s",
-                bucketName, Region.AP_SOUTHEAST_1.toString(), usernameToKeyMap.get(username));
+                bucketName, Region.AP_SOUTHEAST_1.toString(), this.getKey(username));
+    }
+
+    public String getKey(String username) {
+        return usernameToKeyMap.get(username);
     }
 }
