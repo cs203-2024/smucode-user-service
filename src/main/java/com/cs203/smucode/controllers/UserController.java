@@ -1,5 +1,7 @@
 package com.cs203.smucode.controllers;
 
+import com.cs203.smucode.constants.MediaConstants;
+import com.cs203.smucode.constants.OAuth2Constants;
 import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.mappers.UserProfileMapper;
 import com.cs203.smucode.dto.UserIdentificationDTO;
@@ -7,10 +9,15 @@ import com.cs203.smucode.dto.UserInfoDTO;
 import com.cs203.smucode.models.UserProfile;
 import com.cs203.smucode.dto.UserRatingDTO;
 import com.cs203.smucode.services.IUserService;
+import com.cs203.smucode.utils.AWSUtil;
+import com.nimbusds.jwt.proc.BadJWTException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -30,10 +37,12 @@ public class UserController {
     private static Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final IUserService userService;
+    private final AWSUtil awsUtil;
 
     @Autowired
-    public UserController(IUserService userService) {
+    public UserController(IUserService userService, AWSUtil awsUtil) {
         this.userService = userService;
+        this.awsUtil = awsUtil;
     }
 
 
@@ -92,6 +101,49 @@ public class UserController {
         }
     }
 
+    @PostMapping("/generate-upload-link")
+    public ResponseEntity<String> generatePresignedUrl(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam String contentType
+    ) {
+
+        validateJwt(jwt);
+
+        if (contentType == null || contentType.isEmpty()) {
+            throw new ApiRequestException("Content type is mandatory");
+        }
+
+        if (!MediaConstants.SUPPORTED_MEDIA.contains(contentType)) {
+            throw new ApiRequestException("Unsupported content type: " + contentType);
+        }
+
+        try {
+            String username = jwt.getClaimAsString(OAuth2Constants.SUBJECT);
+            return ResponseEntity.ok(awsUtil.generatePresignedUrl(username, contentType));
+        } catch (ApiRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiRequestException("An error occurred while uploading the profile picture");
+        }
+    }
+
+    @PostMapping("/upload-picture")
+    public ResponseEntity<String> uploadPicture(@AuthenticationPrincipal Jwt jwt) {
+        validateJwt(jwt);
+
+        try {
+            String username = jwt.getClaimAsString(OAuth2Constants.SUBJECT);
+            String imageUrl = awsUtil.getObjectUrl(username);
+            userService.uploadProfilePicture(username, imageUrl);
+
+            return ResponseEntity.ok("Image uploaded successfully.");
+        } catch (ApiRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiRequestException("An error occurred while uploading the profile picture");
+        }
+    }
+
     //true skill-related
     @PutMapping("/update-rating")
     public ResponseEntity<String> updateRating(@RequestBody @Valid UserRatingDTO ratingDTO) {
@@ -140,6 +192,12 @@ public class UserController {
     private void validateUsername(String username) {
         if (username == null || username.isEmpty()) {
             throw new ApiRequestException("Username cannot be null or empty");
+        }
+    }
+
+    private void validateJwt(@AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) {
+            throw new ApiRequestException("Invalid JWT");
         }
     }
 }

@@ -29,6 +29,8 @@ public class SecurityConfiguration {
             auth
                 .requestMatchers("/api/users/{username}/update-rating")
                 .hasAuthority("SCOPE_ROLE_ADMIN")
+                .requestMatchers("/api/users/upload-picture")
+                .authenticated()
                 .anyRequest()
                 .permitAll()
         );

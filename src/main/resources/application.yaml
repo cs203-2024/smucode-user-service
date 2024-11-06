@@ -24,3 +24,7 @@ eureka:
     fetchRegistry: true
     serviceUrl:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://localhost:8761/eureka/}
+
+aws:
+  bucket:
+    name: brawlcode-user-pictures
