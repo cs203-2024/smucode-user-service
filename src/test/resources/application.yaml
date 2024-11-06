@@ -8,3 +8,7 @@ logging:
 eureka:
   client:
     enabled: false
+
+aws:
+  bucket:
+    name: test
