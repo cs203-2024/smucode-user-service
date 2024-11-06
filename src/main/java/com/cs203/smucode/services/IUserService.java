@@ -14,5 +14,4 @@ public interface IUserService {
     void uploadProfilePicture(String username, String imageUrl);
     void updateUserWin(String username);
     void updateUserLoss(String username);
-
 }

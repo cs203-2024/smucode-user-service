@@ -16,6 +16,8 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueReques
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -31,6 +33,8 @@ public class AWSUtil {
 
     @Value("${aws.bucket.name}")
     private String bucketName;
+
+    private final Map<String, String> usernameToKeyMap = new HashMap<>();
 
     public String getValueFromSecretsManager(String secretName) {
         try (
@@ -60,7 +64,8 @@ public class AWSUtil {
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .build()) {
 
-            String key = this.getKey(username);
+            String key = String.format("profile-picture/%s-%s", username, UUID.randomUUID());
+            this.usernameToKeyMap.put(username, key);
 
             PutObjectRequest objectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
@@ -85,12 +90,12 @@ public class AWSUtil {
         }
     }
 
-    public String getObjectUrl(String key) {
-        return String.format("https://%s.s3.%s.amazonaws.com/%s",
-                bucketName, Region.AP_SOUTHEAST_1.toString(), key);
-    }
+    public String getObjectUrl(String username) {
+        if (usernameToKeyMap.get(username) == null) {
+            throw new IllegalStateException("Username " + username + " does not have an existing image");
+        }
 
-    private String getKey(String username) {
-        return String.format("profile-picture/%s-%s", username, UUID.randomUUID());
+        return String.format("https://%s.s3.%s.amazonaws.com/%s",
+                bucketName, Region.AP_SOUTHEAST_1.toString(), usernameToKeyMap.get(username));
     }
 }
