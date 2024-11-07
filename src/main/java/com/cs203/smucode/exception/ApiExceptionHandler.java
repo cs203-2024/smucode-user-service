@@ -19,4 +19,14 @@ public class ApiExceptionHandler {
         );
         return new ResponseEntity<>(apiException, badRequest);
     }
+    @ExceptionHandler(value = {InvalidTokenException.class})
+    public ResponseEntity<ApiException> handleInvalidTokenException(InvalidTokenException e) {
+        HttpStatus unauthorized = HttpStatus.UNAUTHORIZED;
+        ApiException apiException = new ApiException(
+                e.getMessage(),
+                unauthorized,
+                ZonedDateTime.now()
+        );
+        return new ResponseEntity<>(apiException, unauthorized);
+    }
 }

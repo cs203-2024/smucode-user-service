@@ -4,6 +4,7 @@ import com.cs203.smucode.constants.MediaConstants;
 import com.cs203.smucode.constants.OAuth2Constants;
 import com.cs203.smucode.dto.UploadLinkResponseDTO;
 import com.cs203.smucode.exception.ApiRequestException;
+import com.cs203.smucode.exception.InvalidTokenException;
 import com.cs203.smucode.mappers.UserProfileMapper;
 import com.cs203.smucode.dto.UserIdentificationDTO;
 import com.cs203.smucode.dto.UserInfoDTO;
@@ -216,7 +217,7 @@ public class UserController {
 
     private void validateJwt(@AuthenticationPrincipal Jwt jwt) {
         if (jwt == null) {
-            throw new ApiRequestException("Invalid JWT");
+            throw new InvalidTokenException("Invalid JWT");
         }
     }
 }
