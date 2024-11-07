@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface IUserService {
     UserProfile getUserProfileByUsername(String username);
     UserProfile createUserProfile(UserProfile userProfile);
-    void deleteUserProfile(UUID id);
+    void deleteUserProfile(String username);
     void updateUserRating(String username, Rating newRating);
     void uploadProfilePicture(String username, String imageUrl);
     void updateUserWin(String username);

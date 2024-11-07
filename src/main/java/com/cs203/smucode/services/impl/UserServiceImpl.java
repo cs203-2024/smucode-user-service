@@ -56,8 +56,9 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
-    public void deleteUserProfile(UUID id) {
-        userProfileRepository.deleteById(id);
+    public void deleteUserProfile(String username) {
+        UserProfile userProfile = this.getUserProfileByUsername(username);
+        userProfileRepository.deleteById(userProfile.getId());
     }
 
     // Profile picture related

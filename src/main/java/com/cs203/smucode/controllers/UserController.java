@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -67,10 +68,10 @@ public class UserController {
     @PostMapping("/profile/create")
     public ResponseEntity<String> createUser(@RequestBody @Valid UserIdentificationDTO userIdentificationDTO) {
         try {
-            validateUsername(userIdentificationDTO.username());
 
             UserProfile userProfile = UserProfileMapper.INSTANCE.userIdentificationDTOtoUserProfile(userIdentificationDTO);
 
+            logger.info("Creating user profile {}", userProfile);
             userService.createUserProfile(userProfile);
 
             URI location = ServletUriComponentsBuilder
@@ -79,6 +80,8 @@ public class UserController {
                     .path("/{username}")              // Append the username parameter
                     .buildAndExpand(userProfile.getUsername())  // Insert the username into the path
                     .toUri();
+
+            logger.info("Creating uri {}", location);
 
             return ResponseEntity.created(location)
                     .body("Created user profile '" + userProfile + "'.");
@@ -92,10 +95,11 @@ public class UserController {
     @PostMapping("/profile/delete")
     public ResponseEntity<String> deleteUser(@RequestBody @Valid UserIdentificationDTO userIdentificationDTO) {
         try {
-            validateUsername(userIdentificationDTO.username());
-            userService.deleteUserProfile(userIdentificationDTO.id());
+            userService.deleteUserProfile(userIdentificationDTO.username());
 
             return ResponseEntity.ok("Deleted user profile '" + userIdentificationDTO.username() + "'.");
+        } catch (UsernameNotFoundException e) {
+            throw new ApiRequestException("Username not found");
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {
@@ -108,7 +112,6 @@ public class UserController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam String contentType
     ) {
-
         validateJwt(jwt);
 
         if (contentType == null || contentType.isEmpty()) {
@@ -124,6 +127,7 @@ public class UserController {
             String preSignedUrl = awsUtil.generatePresignedUrl(username, contentType);
             String key = awsUtil.getKey(username);
 
+            logger.info("Making presigned link for {}", username);
             return ResponseEntity.ok(
                     new UploadLinkResponseDTO(key, preSignedUrl)
             );
@@ -153,6 +157,8 @@ public class UserController {
                 throw new ApiRequestException("Input key does not match generated key");
             }
 
+
+            logger.info("Making image link for {}", username);
             String imageUrl = awsUtil.getObjectUrl(username);
             userService.uploadProfilePicture(username, imageUrl);
 
@@ -185,6 +191,7 @@ public class UserController {
     public ResponseEntity<String> updateWin(@PathVariable String username) {
         try {
             validateUsername(username);
+            logger.info("Passed validation, updating win");
             userService.updateUserWin(username);
 
             return ResponseEntity.ok("User win count updated successfully");
@@ -199,6 +206,7 @@ public class UserController {
     public ResponseEntity<String> updateLoss(@PathVariable String username) {
         try {
             validateUsername(username);
+            logger.info("Passed validation, updating loss");
             userService.updateUserLoss(username);
 
             return ResponseEntity.ok("User loss count updated successfully");
@@ -216,7 +224,6 @@ public class UserController {
     }
 
     private void validateJwt(@AuthenticationPrincipal Jwt jwt) {
-        logger.info("Making request with {}", jwt);
         if (jwt == null) {
             throw new InvalidTokenException("Invalid JWT");
         }
