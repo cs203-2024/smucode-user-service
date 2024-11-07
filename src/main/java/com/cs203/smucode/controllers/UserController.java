@@ -174,10 +174,11 @@ public class UserController {
     @PutMapping("/update-rating")
     public ResponseEntity<String> updateRating(@RequestBody @Valid UserRatingDTO ratingDTO) {
         try {
-            validateUsername(ratingDTO.username());
 
             Rating newRating = new Rating(ratingDTO.mu(), ratingDTO.sigma());
             userService.updateUserRating(ratingDTO.username(), newRating);
+
+            logger.info("Updating rating");
 
             return ResponseEntity.ok("User rating updated successfully");
         } catch (ApiRequestException e) {
