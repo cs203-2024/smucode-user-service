@@ -216,6 +216,7 @@ public class UserController {
     }
 
     private void validateJwt(@AuthenticationPrincipal Jwt jwt) {
+        logger.info("Making request with {}", jwt);
         if (jwt == null) {
             throw new InvalidTokenException("Invalid JWT");
         }
