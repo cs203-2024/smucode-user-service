@@ -90,7 +90,7 @@ public class UserServiceImplTest {
     }
 
     /**
-     * Tests the {@link UserServiceImpl#deleteUserProfile(String)} method.
+     * Tests the {@link UserServiceImpl#deleteUserProfile(UUID)} method.
      * 
      * Verifies that the method correctly calls the repository to delete a user by their ID.
      */
@@ -98,7 +98,7 @@ public class UserServiceImplTest {
     @DisplayName("Should delete user")
     void deleteUser() {
         UUID userId = UUID.fromString("ff6218d9-8bc1-460f-b3f3-9b2ac4f4561b");
-        userService.deleteUserProfile("newuser");
+        userService.deleteUserProfile(userId);
         verify(userProfileRepository).deleteById(userId);
     }
 
