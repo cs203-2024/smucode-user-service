@@ -102,8 +102,8 @@ public class UserController {
         }
     }
 
-    @PostMapping("/generate-upload-link")
-    public ResponseEntity<UploadLinkResponseDTO> generatePreSignedUrl(
+    @PostMapping("/get-upload-link")
+    public ResponseEntity<UploadLinkResponseDTO> getPreSignedUrl(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam String contentType
     ) {
