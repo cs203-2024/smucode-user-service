@@ -95,7 +95,7 @@ public class UserController {
     @PostMapping("/profile/delete")
     public ResponseEntity<String> deleteUser(@RequestBody @Valid UserIdentificationDTO userIdentificationDTO) {
         try {
-            UserProfile userProfile = userService.getUserProfileByUsername(userIdentificationDTO.username())
+            UserProfile userProfile = userService.getUserProfileByUsername(userIdentificationDTO.username());
             userService.deleteUserProfile(userProfile.getId());
 
             return ResponseEntity.ok("Deleted user profile '" + userIdentificationDTO.username() + "'.");
