@@ -2,14 +2,11 @@ package com.cs203.smucode.controllers;
 
 import com.cs203.smucode.constants.MediaConstants;
 import com.cs203.smucode.constants.OAuth2Constants;
-import com.cs203.smucode.dto.UploadLinkResponseDTO;
+import com.cs203.smucode.dto.*;
 import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.exception.InvalidTokenException;
 import com.cs203.smucode.mappers.UserProfileMapper;
-import com.cs203.smucode.dto.UserIdentificationDTO;
-import com.cs203.smucode.dto.UserInfoDTO;
 import com.cs203.smucode.models.UserProfile;
-import com.cs203.smucode.dto.UserRatingDTO;
 import com.cs203.smucode.services.IUserService;
 import com.cs203.smucode.utils.AWSUtil;
 import com.nimbusds.jwt.proc.BadJWTException;
@@ -140,7 +137,7 @@ public class UserController {
     }
 
     @PostMapping("/upload-picture")
-    public ResponseEntity<String> uploadPicture(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<UploadSuccessResponseDTO> uploadPicture(@AuthenticationPrincipal Jwt jwt,
                                                 @RequestParam String key) {
         try {
             validateJwt(jwt);
@@ -163,7 +160,9 @@ public class UserController {
             String imageUrl = awsUtil.getObjectUrl(username);
             userService.uploadProfilePicture(username, imageUrl);
 
-            return ResponseEntity.ok("Image uploaded successfully.");
+            return ResponseEntity.ok(
+                    new UploadSuccessResponseDTO("success", imageUrl)
+            );
         } catch (ApiRequestException e) {
             throw e;
         } catch (Exception e) {
