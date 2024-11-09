@@ -31,6 +31,8 @@ public class SecurityConfiguration {
                 .hasAuthority("SCOPE_ROLE_ADMIN")
                 .requestMatchers("/api/users/upload-picture")
                 .authenticated()
+                .requestMatchers("/api/users/**")
+                .hasAuthority("SCOPE_ROLE_SYSTEM")
                 .anyRequest()
                 .permitAll()
         );
