@@ -51,7 +51,7 @@ class UserControllerTest {
     private AWSUtil awsUtil;
 
     @Value("${feign.access.token}")
-    private String TEST_JWT;
+    private String testJWT;
     private UserProfile testUser;
     private UserIdentificationDTO testUserIdDTO;
     private UserRatingDTO testUserRatingDTO;
@@ -100,7 +100,7 @@ class UserControllerTest {
             userProfileRepository.save(testUser);
 
             mockMvc.perform(get("/api/users/profile/SYSTEM")
-                            .header("Authorization", "Bearer " + TEST_JWT))
+                            .header("Authorization", "Bearer " + testJWT))
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(testId.toString()))
@@ -115,7 +115,7 @@ class UserControllerTest {
         @DisplayName("Should return 400 when username not found")
         void getProfile_InvalidUsername_ReturnsBadRequest() throws Exception {
             mockMvc.perform(get("/api/users/profile/nonexistent")
-                            .header("Authorization", "Bearer " + TEST_JWT))
+                            .header("Authorization", "Bearer " + testJWT))
                     .andDo(print())
                     .andExpect(status().isBadRequest())
                     .andExpect(result -> assertThat(result.getResolvedException())
@@ -126,7 +126,7 @@ class UserControllerTest {
         @DisplayName("Should create user profile successfully")
         void createUser_ValidData_Success() throws Exception {
             MvcResult result = mockMvc.perform(post("/api/users/profile/create")
-                            .header("Authorization", "Bearer " + TEST_JWT)
+                            .header("Authorization", "Bearer " + testJWT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testUserIdDTO)))
                     .andDo(print())
@@ -154,7 +154,7 @@ class UserControllerTest {
         @DisplayName("Should get pre-signed URL successfully")
         void getPreSignedUrl_ValidRequest_Success() throws Exception {
             mockMvc.perform(post("/api/users/get-upload-link")
-                            .header("Authorization", "Bearer " + TEST_JWT)
+                            .header("Authorization", "Bearer " + testJWT)
                             .param("contentType", MediaConstants.IMAGE_JPEG))
                     .andDo(print())
                     .andExpect(status().isOk())
@@ -166,7 +166,7 @@ class UserControllerTest {
         @DisplayName("Should reject invalid content type")
         void getPreSignedUrl_InvalidContentType_ReturnsBadRequest() throws Exception {
             mockMvc.perform(post("/api/users/get-upload-link")
-                            .header("Authorization", "Bearer " + TEST_JWT)
+                            .header("Authorization", "Bearer " + testJWT)
                             .param("contentType", "invalid/type"))
                     .andDo(print())
                     .andExpect(status().isBadRequest());
@@ -176,7 +176,7 @@ class UserControllerTest {
         @DisplayName("Should reject invalid key format")
         void uploadPicture_InvalidKey_ReturnsBadRequest() throws Exception {
             mockMvc.perform(post("/api/users/upload-picture")
-                            .header("Authorization", "Bearer " + TEST_JWT)
+                            .header("Authorization", "Bearer " + testJWT)
                             .param("key", "invalid-key"))
                     .andDo(print())
                     .andExpect(status().isBadRequest());
@@ -192,7 +192,7 @@ class UserControllerTest {
             userProfileRepository.save(testUser);
 
             mockMvc.perform(put("/api/users/update-rating")
-                            .header("Authorization", "Bearer " + TEST_JWT)
+                            .header("Authorization", "Bearer " + testJWT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testUserRatingDTO)))
                     .andDo(print())
@@ -209,7 +209,7 @@ class UserControllerTest {
             userProfileRepository.save(testUser);
 
             mockMvc.perform(put("/api/users/update-win/SYSTEM")
-                            .header("Authorization", "Bearer " + TEST_JWT))
+                            .header("Authorization", "Bearer " + testJWT))
                     .andDo(print())
                     .andExpect(status().isOk());
 
@@ -223,7 +223,7 @@ class UserControllerTest {
             userProfileRepository.save(testUser);
 
             mockMvc.perform(put("/api/users/update-loss/SYSTEM")
-                            .header("Authorization", "Bearer " + TEST_JWT))
+                            .header("Authorization", "Bearer " + testJWT))
                     .andDo(print())
                     .andExpect(status().isOk());
 
@@ -247,7 +247,7 @@ class UserControllerTest {
         @DisplayName("Should handle missing content type")
         void getPreSignedUrl_MissingContentType_ReturnsBadRequest() throws Exception {
             mockMvc.perform(post("/api/users/get-upload-link")
-                            .header("Authorization", "Bearer " + TEST_JWT))
+                            .header("Authorization", "Bearer " + testJWT))
                     .andDo(print())
                     .andExpect(status().isBadRequest());
         }
@@ -256,7 +256,7 @@ class UserControllerTest {
         @DisplayName("Should handle empty content type")
         void getPreSignedUrl_EmptyContentType_ReturnsBadRequest() throws Exception {
             mockMvc.perform(post("/api/users/get-upload-link")
-                            .header("Authorization", "Bearer " + TEST_JWT)
+                            .header("Authorization", "Bearer " + testJWT)
                             .param("contentType", ""))
                     .andDo(print())
                     .andExpect(status().isBadRequest())
@@ -268,7 +268,7 @@ class UserControllerTest {
         @DisplayName("Should handle missing key in upload")
         void uploadPicture_MissingKey_ReturnsBadRequest() throws Exception {
             mockMvc.perform(post("/api/users/upload-picture")
-                            .header("Authorization", "Bearer " + TEST_JWT))
+                            .header("Authorization", "Bearer " + testJWT))
                     .andDo(print())
                     .andExpect(status().isBadRequest());
         }
