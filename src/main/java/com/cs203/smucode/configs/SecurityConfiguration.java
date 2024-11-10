@@ -30,14 +30,14 @@ public class SecurityConfiguration {
         http.authorizeHttpRequests(auth ->
             auth
                 .requestMatchers(
-                        "/api/users/{username}/update-rating",
-                        "api/users/update-loss/{username}",
-                        "api/users/update-win/{username}"
+                        "/api/users/update-rating",
+                        "/api/users/update-loss/*",
+                        "/api/users/update-win/*"
                         )
                 .hasAuthority("SCOPE_ROLE_ADMIN")
                 .requestMatchers(
                         "/api/users/upload-picture",
-                        "api/users/get-upload-link"
+                        "/api/users/get-upload-link"
                 )
                 .authenticated()
                 .requestMatchers("/api/users/**")
