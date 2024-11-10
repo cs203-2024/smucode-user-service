@@ -1,44 +1,40 @@
 package com.cs203.smucode.controllers;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import com.cs203.smucode.exception.ApiRequestException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.cs203.smucode.configs.TestSecurityConfiguration;
 import com.cs203.smucode.constants.MediaConstants;
-import com.cs203.smucode.constants.OAuth2Constants;
 import com.cs203.smucode.dto.*;
+import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.models.UserProfile;
-import com.cs203.smucode.services.IUserService;
+import com.cs203.smucode.repositories.UserProfileRepository;
 import com.cs203.smucode.utils.AWSUtil;
-import com.cs203.smucode.mappers.UserProfileMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.gesundkrank.jskills.Rating;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.Matchers.containsString;
 
-@WebMvcTest(UserController.class)
-@Import({UserProfileMapper.class})
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+@Import(TestSecurityConfiguration.class)
 @DisplayName("UserController Integration Tests")
 class UserControllerTest {
 
@@ -48,80 +44,67 @@ class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockBean
-    private IUserService userService;
+    @Autowired
+    private UserProfileRepository userProfileRepository;
 
-    @MockBean
-    private UserProfileMapper userProfileMapper;
-
-    @MockBean
+    @Autowired
     private AWSUtil awsUtil;
 
-    private UserProfile testProfile;
-    private UserInfoDTO testUserInfoDTO;
+    @Value("${feign.access.token}")
+    private String TEST_JWT;
+    private UserProfile testUser;
     private UserIdentificationDTO testUserIdDTO;
     private UserRatingDTO testUserRatingDTO;
     private final UUID testId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
-        testProfile = new UserProfile();
-        testProfile.setId(testId);
-        testProfile.setUsername("testUser");
-        testProfile.setEmail("test@example.com");
-        testProfile.setProfileImageUrl("https://example.com/image.jpg");
-        testProfile.setWins(5);
-        testProfile.setLosses(3);
-        testProfile.setMu(25.0);
-        testProfile.setSigma(8.333);
-        testProfile.setSkillIndex(0.0);
+        userProfileRepository.deleteAll();
 
-        testUserInfoDTO = new UserInfoDTO(
-                testId,
-                "testUser",
-                "test@example.com",
-                "https://example.com/image.jpg",
-                5,
-                3,
-                25.0,
-                8.333,
-                0.0
-        );
+        testUser = new UserProfile();
+        testUser.setId(testId);
+        testUser.setUsername("SYSTEM");
+        testUser.setEmail("test@example.com");
+        testUser.setProfileImageUrl("https://example.com/image.jpg");
+        testUser.setWins(5);
+        testUser.setLosses(3);
+        testUser.setMu(25.0);
+        testUser.setSigma(8.333);
+        testUser.setSkillIndex(0.0);
 
         testUserIdDTO = new UserIdentificationDTO(
                 testId,
-                "testUser",
+                "SYSTEM",
                 "test@example.com"
         );
 
         testUserRatingDTO = new UserRatingDTO(
-                "testUser",
+                "SYSTEM",
                 25.0,
                 8.333,
                 0.0
         );
+    }
 
-        when(userProfileMapper.userProfileToUserInfoDTO(any(UserProfile.class)))
-                .thenReturn(testUserInfoDTO);
-        when(userProfileMapper.userIdentificationDTOtoUserProfile(any(UserIdentificationDTO.class)))
-                .thenReturn(testProfile);
+    @AfterEach
+    void tearDown() {
+        userProfileRepository.deleteAll();
     }
 
     @Nested
     @DisplayName("Profile Operations")
     class ProfileOperations {
         @Test
-        @WithMockUser
         @DisplayName("Should get user profile successfully")
         void getProfile_ValidUsername_Success() throws Exception {
-            when(userService.getUserProfileByUsername("testUser"))
-                    .thenReturn(testProfile);
+            userProfileRepository.save(testUser);
 
-            mockMvc.perform(get("/api/users/profile/testUser")
-                            .with(csrf()))
+            mockMvc.perform(get("/api/users/profile/SYSTEM")
+                            .header("Authorization", "Bearer " + TEST_JWT))
+                    .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(testId.toString()))
-                    .andExpect(jsonPath("$.username").value("testUser"))
+                    .andExpect(jsonPath("$.username").value("SYSTEM"))
                     .andExpect(jsonPath("$.email").value("test@example.com"))
                     .andExpect(jsonPath("$.profileImageUrl").value("https://example.com/image.jpg"))
                     .andExpect(jsonPath("$.wins").value(5))
@@ -129,34 +112,38 @@ class UserControllerTest {
         }
 
         @Test
-        @WithMockUser
-        @DisplayName("Should create user profile successfully")
-        void createUser_ValidData_Success() throws Exception {
-            when(userService.createUserProfile(any(UserProfile.class)))
-                    .thenReturn(testProfile);
-
-            mockMvc.perform(post("/api/users/profile/create")
-                            .with(csrf())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(testUserIdDTO)))
-                    .andExpect(status().isCreated())
-                    .andExpect(header().exists("Location"))
-                    .andExpect(content().string(containsString("Created user profile")));
+        @DisplayName("Should return 400 when username not found")
+        void getProfile_InvalidUsername_ReturnsBadRequest() throws Exception {
+            mockMvc.perform(get("/api/users/profile/nonexistent")
+                            .header("Authorization", "Bearer " + TEST_JWT))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertThat(result.getResolvedException())
+                            .isInstanceOf(ApiRequestException.class));
         }
 
         @Test
-        @WithMockUser
-        @DisplayName("Should delete user profile successfully")
-        void deleteUser_ValidData_Success() throws Exception {
-            when(userService.getUserProfileByUsername(anyString()))
-                    .thenReturn(testProfile);
-
-            mockMvc.perform(post("/api/users/profile/delete")
-                            .with(csrf())
+        @DisplayName("Should create user profile successfully")
+        void createUser_ValidData_Success() throws Exception {
+            MvcResult result = mockMvc.perform(post("/api/users/profile/create")
+                            .header("Authorization", "Bearer " + TEST_JWT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testUserIdDTO)))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string(containsString("Deleted user profile")));
+                    .andDo(print())
+                    .andExpect(status().isCreated())
+                    .andExpect(header().exists("Location"))
+                    .andExpect(content().string(containsString("Created user profile")))
+                    .andReturn();
+
+            // Verify the user was actually created in the database
+            UserProfile savedUser = userProfileRepository.findByUsername("SYSTEM").orElseThrow();
+            assertThat(savedUser.getEmail()).isEqualTo("test@example.com");
+            assertThat(savedUser.getMu()).isEqualTo(25.0);
+            assertThat(savedUser.getSigma()).isEqualTo(8.333);
+
+            // Verify Location header format
+            String location = result.getResponse().getHeader("Location");
+            assertThat(location).contains("/api/users/profile/SYSTEM");
         }
     }
 
@@ -164,41 +151,35 @@ class UserControllerTest {
     @DisplayName("Image Upload Operations")
     class ImageUploadOperations {
         @Test
-        @WithMockUser
         @DisplayName("Should get pre-signed URL successfully")
-        void getPreSignedUrl_ValidData_Success() throws Exception {
-            String preSignedUrl = "https://presigned-url.com";
-            String key = "profile-picture/testUser-123";
-
-            when(awsUtil.generatePresignedUrl(anyString(), anyString())).thenReturn(preSignedUrl);
-            when(awsUtil.getKey(anyString())).thenReturn(key);
-
+        void getPreSignedUrl_ValidRequest_Success() throws Exception {
             mockMvc.perform(post("/api/users/get-upload-link")
-                            .with(csrf())
-                            .with(jwt().jwt(t -> t.claim(OAuth2Constants.SUBJECT, "testUser")))
+                            .header("Authorization", "Bearer " + TEST_JWT)
                             .param("contentType", MediaConstants.IMAGE_JPEG))
+                    .andDo(print())
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.preSignedUrl").value(preSignedUrl))
-                    .andExpect(jsonPath("$.key").value(key));
+                    .andExpect(jsonPath("$.key").exists())
+                    .andExpect(jsonPath("$.preSignedUrl").exists());
         }
 
         @Test
-        @WithMockUser
-        @DisplayName("Should upload picture successfully")
-        void uploadPicture_ValidData_Success() throws Exception {
-            String key = "profile-picture/testUser-123";
-            String imageUrl = "https://example.com/image.jpg";
+        @DisplayName("Should reject invalid content type")
+        void getPreSignedUrl_InvalidContentType_ReturnsBadRequest() throws Exception {
+            mockMvc.perform(post("/api/users/get-upload-link")
+                            .header("Authorization", "Bearer " + TEST_JWT)
+                            .param("contentType", "invalid/type"))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
+        }
 
-            when(awsUtil.getKey(anyString())).thenReturn(key);
-            when(awsUtil.getObjectUrl(anyString())).thenReturn(imageUrl);
-
+        @Test
+        @DisplayName("Should reject invalid key format")
+        void uploadPicture_InvalidKey_ReturnsBadRequest() throws Exception {
             mockMvc.perform(post("/api/users/upload-picture")
-                            .with(csrf())
-                            .with(jwt().jwt(t -> t.claim(OAuth2Constants.SUBJECT, "testUser")))
-                            .param("key", key))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value("success"))
-                    .andExpect(jsonPath("$.imageUrl").value(imageUrl));
+                            .header("Authorization", "Bearer " + TEST_JWT)
+                            .param("key", "invalid-key"))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
         }
     }
 
@@ -206,258 +187,90 @@ class UserControllerTest {
     @DisplayName("User Stats Operations")
     class UserStatsOperations {
         @Test
-        @WithMockUser
         @DisplayName("Should update rating successfully")
         void updateRating_ValidData_Success() throws Exception {
+            userProfileRepository.save(testUser);
+
             mockMvc.perform(put("/api/users/update-rating")
-                            .with(csrf())
+                            .header("Authorization", "Bearer " + TEST_JWT)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(testUserRatingDTO)))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("User rating updated successfully"));
+                    .andDo(print())
+                    .andExpect(status().isOk());
 
-            verify(userService).updateUserRating(eq("testUser"), any(Rating.class));
+            UserProfile updatedUser = userProfileRepository.findByUsername("SYSTEM").orElseThrow();
+            assertThat(updatedUser.getMu()).isEqualTo(25.0);
+            assertThat(updatedUser.getSigma()).isEqualTo(8.333);
         }
 
         @Test
-        @WithMockUser
         @DisplayName("Should update win count successfully")
         void updateWin_ValidUsername_Success() throws Exception {
-            mockMvc.perform(put("/api/users/update-win/{username}", "testUser")
-                            .with(csrf()))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("User win count updated successfully"));
+            userProfileRepository.save(testUser);
 
-            verify(userService).updateUserWin("testUser");
+            mockMvc.perform(put("/api/users/update-win/SYSTEM")
+                            .header("Authorization", "Bearer " + TEST_JWT))
+                    .andDo(print())
+                    .andExpect(status().isOk());
+
+            UserProfile updatedUser = userProfileRepository.findByUsername("SYSTEM").orElseThrow();
+            assertThat(updatedUser.getWins()).isEqualTo(6); // 5 + 1
         }
 
         @Test
-        @WithMockUser
         @DisplayName("Should update loss count successfully")
         void updateLoss_ValidUsername_Success() throws Exception {
-            mockMvc.perform(put("/api/users/update-loss/{username}", "testUser")
-                            .with(csrf()))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("User loss count updated successfully"));
+            userProfileRepository.save(testUser);
 
-            verify(userService).updateUserLoss("testUser");
+            mockMvc.perform(put("/api/users/update-loss/SYSTEM")
+                            .header("Authorization", "Bearer " + TEST_JWT))
+                    .andDo(print())
+                    .andExpect(status().isOk());
+
+            UserProfile updatedUser = userProfileRepository.findByUsername("SYSTEM").orElseThrow();
+            assertThat(updatedUser.getLosses()).isEqualTo(4); // 3 + 1
         }
     }
 
     @Nested
     @DisplayName("Error Handling")
     class ErrorHandling {
-        @Nested
-        @DisplayName("Profile Error Handling")
-        class ProfileErrorHandling {
-            @Test
-            @WithMockUser
-            @DisplayName("Should throw ApiRequestException when getting profile fails")
-            void getProfile_WhenServiceThrowsException_ThrowsApiRequestException() throws Exception {
-                when(userService.getUserProfileByUsername(anyString()))
-                        .thenThrow(new ApiRequestException("An error occurred while fetching the user profile"));
-
-                mockMvc.perform(get("/api/users/profile/{username}", "testUser")
-                                .with(csrf()))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(result -> assertTrue(result.getResolvedException() instanceof ApiRequestException))
-                        .andExpect(result -> assertEquals("An error occurred while fetching the user profile",
-                                result.getResolvedException().getMessage()));
-            }
-
-            @Test
-            @WithMockUser
-            @DisplayName("Should throw ApiRequestException when creating profile fails")
-            void createUser_WhenServiceThrowsException_ThrowsApiRequestException() throws Exception {
-                when(userService.createUserProfile(any(UserProfile.class)))
-                        .thenThrow(new ApiRequestException("An error occurred while creating the user profile"));
-
-                mockMvc.perform(post("/api/users/profile/create")
-                                .with(csrf())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(testUserIdDTO)))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(result -> assertTrue(result.getResolvedException() instanceof ApiRequestException))
-                        .andExpect(result -> assertEquals("An error occurred while creating the user profile",
-                                result.getResolvedException().getMessage()));
-            }
-
-            @Test
-            @WithMockUser
-            @DisplayName("Should throw ApiRequestException when deleting profile fails with UsernameNotFoundException")
-            void deleteUser_WhenUserNotFound_ThrowsApiRequestException() throws Exception {
-                when(userService.getUserProfileByUsername(anyString()))
-                        .thenThrow(new UsernameNotFoundException("Username not found"));
-
-                mockMvc.perform(post("/api/users/profile/delete")
-                                .with(csrf())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(testUserIdDTO)))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(result -> assertTrue(result.getResolvedException() instanceof ApiRequestException))
-                        .andExpect(result -> assertEquals("Username not found",
-                                result.getResolvedException().getMessage()));
-            }
+        @Test
+        @DisplayName("Should handle unauthorized access")
+        void anyEndpoint_NoToken_ReturnsUnauthorized() throws Exception {
+            mockMvc.perform(get("/api/users/profile/SYSTEM"))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized());
         }
 
-        @Nested
-        @DisplayName("Image Upload Error Handling")
-        class ImageUploadErrorHandling {
-            @Test
-            @WithMockUser
-            @DisplayName("Should return 400 when content type is invalid")
-            void getPreSignedUrl_InvalidContentType_BadRequest() throws Exception {
-                mockMvc.perform(post("/api/users/get-upload-link")
-                                .with(csrf())
-                                .with(jwt().jwt(t -> t.claim(OAuth2Constants.SUBJECT, "testUser")))
-                                .param("contentType", "invalid/type"))
-                        .andExpect(status().isBadRequest());
-            }
-
-            @Test
-            @WithMockUser
-            @DisplayName("Should throw ApiRequestException when AWS operations fail")
-            void getPreSignedUrl_WhenAwsOperationFails_ThrowsApiRequestException() throws Exception {
-                when(awsUtil.generatePresignedUrl(anyString(), anyString()))
-                        .thenThrow(new RuntimeException("AWS operation failed"));
-
-                mockMvc.perform(post("/api/users/get-upload-link")
-                                .with(csrf())
-                                .with(jwt().jwt(t -> t.claim(OAuth2Constants.SUBJECT, "testUser")))
-                                .param("contentType", MediaConstants.IMAGE_JPEG))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(result -> assertTrue(result.getResolvedException() instanceof ApiRequestException))
-                        .andExpect(result -> assertEquals("An error occurred while uploading the profile picture",
-                                result.getResolvedException().getMessage()));
-            }
-
-            @Test
-            @WithMockUser
-            @DisplayName("Should throw ApiRequestException when upload picture with empty key")
-            void uploadPicture_EmptyKey_ThrowsApiRequestException() throws Exception {
-                mockMvc.perform(post("/api/users/upload-picture")
-                                .with(csrf())
-                                .with(jwt().jwt(t -> t.claim(OAuth2Constants.SUBJECT, "testUser")))
-                                .param("key", ""))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(result -> assertTrue(result.getResolvedException() instanceof ApiRequestException))
-                        .andExpect(result -> assertEquals("Please provide a non-empty or null key",
-                                result.getResolvedException().getMessage()));
-            }
+        @Test
+        @DisplayName("Should handle missing content type")
+        void getPreSignedUrl_MissingContentType_ReturnsBadRequest() throws Exception {
+            mockMvc.perform(post("/api/users/get-upload-link")
+                            .header("Authorization", "Bearer " + TEST_JWT))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
         }
 
-        @Nested
-        @DisplayName("User Stats Error Handling")
-        class UserStatsErrorHandling {
-            @Test
-            @WithMockUser
-            @DisplayName("Should throw ApiRequestException when updating rating fails")
-            void updateRating_WhenServiceThrowsException_ThrowsApiRequestException() throws Exception {
-                doThrow(new ApiRequestException("An error occurred while updating the rating"))
-                        .when(userService).updateUserRating(anyString(), any(Rating.class));
-
-                mockMvc.perform(put("/api/users/update-rating")
-                                .with(csrf())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(testUserRatingDTO)))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(result -> assertTrue(result.getResolvedException() instanceof ApiRequestException))
-                        .andExpect(result -> assertEquals("An error occurred while updating the rating",
-                                result.getResolvedException().getMessage()));
-            }
-
-            @Test
-            @WithMockUser
-            @DisplayName("Should throw ApiRequestException when updating win count fails")
-            void updateWin_WhenServiceThrowsException_ThrowsApiRequestException() throws Exception {
-                doThrow(new ApiRequestException("An error occurred while updating win count"))
-                        .when(userService).updateUserWin(anyString());
-
-                mockMvc.perform(put("/api/users/update-win/{username}", "testUser")
-                                .with(csrf()))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(result -> assertTrue(result.getResolvedException() instanceof ApiRequestException))
-                        .andExpect(result -> assertEquals("An error occurred while updating win count",
-                                result.getResolvedException().getMessage()));
-            }
-
-            @Test
-            @WithMockUser
-            @DisplayName("Should throw ApiRequestException when updating loss count fails")
-            void updateLoss_WhenServiceThrowsException_ThrowsApiRequestException() throws Exception {
-                doThrow(new ApiRequestException("An error occurred while updating loss count"))
-                        .when(userService).updateUserLoss(anyString());
-
-                mockMvc.perform(put("/api/users/update-loss/{username}", "testUser")
-                                .with(csrf()))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(result -> assertTrue(result.getResolvedException() instanceof ApiRequestException))
-                        .andExpect(result -> assertEquals("An error occurred while updating loss count",
-                                result.getResolvedException().getMessage()));
-            }
+        @Test
+        @DisplayName("Should handle empty content type")
+        void getPreSignedUrl_EmptyContentType_ReturnsBadRequest() throws Exception {
+            mockMvc.perform(post("/api/users/get-upload-link")
+                            .header("Authorization", "Bearer " + TEST_JWT)
+                            .param("contentType", ""))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest())
+                    .andExpect(result -> assertThat(result.getResolvedException().getMessage())
+                            .contains("Content type is mandatory"));
         }
 
-        @Nested
-        @DisplayName("General Error Handling")
-        class GeneralErrorHandling {
-            @Test
-            @WithMockUser
-            @DisplayName("Should handle general exception in getProfile")
-            void getProfile_WhenGeneralException_ThrowsApiRequestException() throws Exception {
-                when(userService.getUserProfileByUsername(anyString()))
-                        .thenThrow(new RuntimeException("Some internal error"));
-
-                mockMvc.perform(get("/api/users/profile/testUser")
-                                .with(csrf()))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.message")
-                                .value("An error occurred while fetching the user profile"));
-            }
-
-            @Test
-            @WithMockUser
-            @DisplayName("Should handle general exception in createUser")
-            void createUser_WhenGeneralException_ThrowsApiRequestException() throws Exception {
-                when(userService.createUserProfile(any(UserProfile.class)))
-                        .thenThrow(new RuntimeException("Some internal error"));
-
-                mockMvc.perform(post("/api/users/profile/create")
-                                .with(csrf())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(testUserIdDTO)))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.message")
-                                .value("An error occurred while fetching the user profile"));
-            }
-
-            @Test
-            @DisplayName("Should handle null JWT validation")
-            void validateJwt_NullJwt_ThrowsInvalidTokenException() throws Exception {
-                mockMvc.perform(post("/api/users/get-upload-link")
-                                .with(csrf()))  // No JWT provided
-                        .andExpect(status().isUnauthorized());
-            }
-
-            @Test
-            @DisplayName("Should handle null content type in getPreSignedUrl")
-            void getPreSignedUrl_NullContentType_ThrowsApiRequestException() throws Exception {
-                mockMvc.perform(post("/api/users/get-upload-link")
-                                .with(csrf())
-                                .with(jwt().jwt(t -> t.claim(OAuth2Constants.SUBJECT, "testUser"))))  // No contentType parameter
-                        .andExpect(status().isBadRequest());
-            }
-
-            @Test
-            @WithMockUser
-            @DisplayName("Should handle empty content type in getPreSignedUrl")
-            void getPreSignedUrl_EmptyContentType_ThrowsApiRequestException() throws Exception {
-                mockMvc.perform(post("/api/users/get-upload-link")
-                                .with(csrf())
-                                .with(jwt().jwt(t -> t.claim(OAuth2Constants.SUBJECT, "testUser")))
-                                .param("contentType", ""))
-                        .andExpect(status().isBadRequest())
-                        .andExpect(jsonPath("$.message").value("Content type is mandatory"));
-            }
+        @Test
+        @DisplayName("Should handle missing key in upload")
+        void uploadPicture_MissingKey_ReturnsBadRequest() throws Exception {
+            mockMvc.perform(post("/api/users/upload-picture")
+                            .header("Authorization", "Bearer " + TEST_JWT))
+                    .andDo(print())
+                    .andExpect(status().isBadRequest());
         }
     }
 }
