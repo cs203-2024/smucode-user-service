@@ -1,6 +1,8 @@
 package com.cs203.smucode.configs;
 
 import java.util.List;
+
+import org.hibernate.validator.internal.constraintvalidators.bv.time.futureorpresent.FutureOrPresentValidatorForDate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -27,10 +29,19 @@ public class SecurityConfiguration {
         throws Exception {
         http.authorizeHttpRequests(auth ->
             auth
-                .requestMatchers("/api/users/{username}/update-rating")
+                .requestMatchers(
+                        "/api/users/update-rating",
+                        "/api/users/update-loss/*",
+                        "/api/users/update-win/*"
+                        )
                 .hasAuthority("SCOPE_ROLE_ADMIN")
-                .requestMatchers("/api/users/upload-picture")
+                .requestMatchers(
+                        "/api/users/upload-picture",
+                        "/api/users/get-upload-link"
+                )
                 .authenticated()
+                .requestMatchers("/api/users/**")
+                .hasAuthority("SCOPE_ROLE_SYSTEM")
                 .anyRequest()
                 .permitAll()
         );
@@ -51,7 +62,8 @@ public class SecurityConfiguration {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:3000",
-                "http://localhost:8000"));
+                "http://localhost:8000", "https://brawlcode.com",
+                "https://dmvmocu3yqalo.cloudfront.net"));
         configuration.setAllowCredentials(true); //Allow credentials (cookies, etc.)
         configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedHeaders(List.of("*"));
