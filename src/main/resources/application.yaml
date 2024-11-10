@@ -27,4 +27,4 @@ eureka:
 
 aws:
   bucket:
-    name: brawlcode-user-pictures
+    name: ${AWS_ASSETS_BUCKET:brawlcode-assets"
