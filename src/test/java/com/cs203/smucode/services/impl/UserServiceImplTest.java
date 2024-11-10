@@ -1,15 +1,18 @@
 package com.cs203.smucode.services.impl;
 
+import com.cs203.smucode.constants.TrueSkillConstants;
+import com.cs203.smucode.exception.ApiRequestException;
 import com.cs203.smucode.models.UserProfile;
 import com.cs203.smucode.repositories.UserProfileRepository;
-
+import de.gesundkrank.jskills.Rating;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -18,135 +21,256 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * @author gav
- * @version 1.0
- * @since 2024-09-07
- * Unit tests for the {@link UserServiceImpl} class.
- * 
- * This class contains test methods to verify the functionality of the UserServiceImpl.
- */
-
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest {
-    /** Mock object for UserRepository. */
+@DisplayName("UserServiceImpl Test Suite")
+class UserServiceImplTest {
+
     @Mock
     private UserProfileRepository userProfileRepository;
 
-    /** The UserServiceImpl instance to be tested. */
+    @InjectMocks
     private UserServiceImpl userService;
-    
-    /**
-     * Sets up the test environment before each test method.
-     * 
-     * This method initializes mock objects and creates a new instance of UserServiceImpl.
-     */
+
+    private UserProfile testUserProfile;
+    private final String testUsername = "testUser";
+    private final UUID testId = UUID.randomUUID();
+
     @BeforeEach
-    public void setUp() {
-        userService = new UserServiceImpl(userProfileRepository);
+    void setUp() {
+        testUserProfile = new UserProfile();
+        testUserProfile.setId(testId);
+        testUserProfile.setUsername(testUsername);
+        testUserProfile.setEmail("test@example.com");
+        testUserProfile.setMu(TrueSkillConstants.DEFAULT_MU);
+        testUserProfile.setSigma(TrueSkillConstants.DEFAULT_SIGMA);
+        testUserProfile.setWins(0);
+        testUserProfile.setLosses(0);
     }
 
-    /**
-     * Tests the {@link UserServiceImpl#getUserProfileByUsername(String)} method.
-     * 
-     * Verifies that the method correctly retrieves a user by their username.
-     */
     @Test
-    @DisplayName("Should retrieve user by username")
-    void getUserByUsername() {
-        String username = "testuser";
-        UserProfile user = new UserProfile(UUID.randomUUID(), username,
-                "player@example.com", null,
-                0, 0,
-                0.1, 0.2,0.3);
-        when(userProfileRepository.findByUsername(username)).thenReturn(Optional.of(user));
-
-        UserProfile result = userService.getUserProfileByUsername(username);
-
-        assertNotNull(result);
-        assertEquals(username, result.getUsername());
-    }
-
-    /**
-     * Tests the {@link UserServiceImpl#createUserProfile(UserProfile)} method.
-     * 
-     * Verifies that the method correctly creates a new user with an encoded password.
-     */
-    @Test
-    @DisplayName("Should create user")
-    void createUser() {
-        String username = "newuser";
-        UserProfile userProfile = new UserProfile(UUID.fromString("ff6218d9-8bc1-460f-b3f3-9b2ac4f4561b"), username,
-                "player@example.com", null,
-                0,0,
-                0.1, 0.2,0.3);
-        when(userProfileRepository.save(any(UserProfile.class))).thenReturn(userProfile);
-
-        UserProfile result = userService.createUserProfile(userProfile);
-
-        assertNotNull(result);
-        assertEquals(username, result.getUsername());
-        verify(userProfileRepository).save(userProfile);
-    }
-
-    /**
-     * Tests the {@link UserServiceImpl#deleteUserProfile(UUID)} method.
-     * 
-     * Verifies that the method correctly calls the repository to delete a user by their ID.
-     */
-    @Test
-    @DisplayName("Should delete user")
-    void deleteUser() {
-        UUID userId = UUID.fromString("ff6218d9-8bc1-460f-b3f3-9b2ac4f4561b");
-        userService.deleteUserProfile(userId);
-        verify(userProfileRepository).deleteById(userId);
-    }
-
-//    @Test
-//    @DisplayName("Should increment win")
-//    void
-    @Test
-    @DisplayName("Should increment user's wins")
-    void updateWin() {
+    @DisplayName("Should retrieve user profile when username exists")
+    void getUserProfileByUsername_ValidUsername_ReturnsUserProfile() {
         // Arrange
-        String username = "player";
-        UserProfile user = new UserProfile(UUID.randomUUID(), username,
-                "player@example.com", null,
-                0, 0,  // initial wins and losses
-                0.1, 0.2, 0.3);
-
-        when(userProfileRepository.findByUsername(username)).thenReturn(Optional.of(user));
-        when(userProfileRepository.save(any(UserProfile.class))).thenReturn(user);
+        when(userProfileRepository.findByUsername(testUsername))
+                .thenReturn(Optional.of(testUserProfile));
 
         // Act
-        userService.updateUserWin(username);
+        UserProfile result = userService.getUserProfileByUsername(testUsername);
 
         // Assert
-        verify(userProfileRepository).save(user);
-        assertEquals(1, user.getWins(), "Win count should be incremented by 1");
-        assertEquals(0, user.getLosses(), "Loss count should remain unchanged");
+        assertNotNull(result);
+        assertEquals(testUsername, result.getUsername());
+        assertEquals(testId, result.getId());
+
+        // Verify
+        verify(userProfileRepository).findByUsername(testUsername);
     }
 
     @Test
-    @DisplayName("Should increment user's losses")
-    void updateLoss() {
+    @DisplayName("Should throw exception when username doesn't exist")
+    void getUserProfileByUsername_InvalidUsername_ThrowsException() {
         // Arrange
-        String username = "player";
-        UserProfile user = new UserProfile(UUID.randomUUID(), username,
-                "player@example.com", null,
-                0, 0,  // initial wins and losses
-                0.1, 0.2, 0.3);
+        String invalidUsername = "nonexistent";
+        when(userProfileRepository.findByUsername(invalidUsername))
+                .thenReturn(Optional.empty());
 
-        when(userProfileRepository.findByUsername(username)).thenReturn(Optional.of(user));
-        when(userProfileRepository.save(any(UserProfile.class))).thenReturn(user);
+        // Act & Assert
+        ApiRequestException exception = assertThrows(ApiRequestException.class,
+                () -> userService.getUserProfileByUsername(invalidUsername));
+        assertEquals("User not found with username: " + invalidUsername, exception.getMessage());
 
-        // Act
-        userService.updateUserLoss(username);
-
-        // Assert
-        verify(userProfileRepository).save(user);
-        assertEquals(1, user.getLosses(), "Loss count should be incremented by 1");
-        assertEquals(0, user.getWins(), "Win count should remain unchanged");
+        // Verify
+        verify(userProfileRepository).findByUsername(invalidUsername);
     }
 
+    @Test
+    @DisplayName("Should create user profile with default values")
+    void createUserProfile_ValidProfile_Success() {
+        // Arrange
+        when(userProfileRepository.save(any(UserProfile.class)))
+                .thenReturn(testUserProfile);
+
+        // Act
+        UserProfile result = userService.createUserProfile(testUserProfile);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(TrueSkillConstants.DEFAULT_MU, result.getMu());
+        assertEquals(TrueSkillConstants.DEFAULT_SIGMA, result.getSigma());
+        assertEquals(TrueSkillConstants.DEFAULT_WINS, result.getWins());
+        assertEquals(TrueSkillConstants.DEFAULT_LOSES, result.getLosses());
+        assertEquals(TrueSkillConstants.DEFAULT_MU - TrueSkillConstants.K_FACTOR * TrueSkillConstants.DEFAULT_SIGMA,
+                result.getSkillIndex());
+
+        // Verify
+        verify(userProfileRepository).save(testUserProfile);
+    }
+
+    @Test
+    @DisplayName("Should delete user profile when ID exists")
+    void deleteUserProfile_ValidId_Success() {
+        // Act
+        userService.deleteUserProfile(testId);
+
+        // Verify
+        verify(userProfileRepository).deleteById(testId);
+    }
+
+    @Test
+    @DisplayName("Should upload profile picture when username exists")
+    void uploadProfilePicture_ValidUsername_Success() {
+        // Arrange
+        String imageUrl = "https://example.com/image.jpg";
+        when(userProfileRepository.findByUsername(testUsername))
+                .thenReturn(Optional.of(testUserProfile));
+        when(userProfileRepository.save(any(UserProfile.class)))
+                .thenReturn(testUserProfile);
+
+        // Act
+        userService.uploadProfilePicture(testUsername, imageUrl);
+
+        // Assert
+        assertEquals(imageUrl, testUserProfile.getProfileImageUrl());
+
+        // Verify
+        verify(userProfileRepository).findByUsername(testUsername);
+        verify(userProfileRepository).save(testUserProfile);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when uploading picture for non-existent user")
+    void uploadProfilePicture_InvalidUsername_ThrowsException() {
+        // Arrange
+        String imageUrl = "https://example.com/image.jpg";
+        when(userProfileRepository.findByUsername(testUsername))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(UsernameNotFoundException.class,
+                () -> userService.uploadProfilePicture(testUsername, imageUrl));
+
+        // Verify
+        verify(userProfileRepository).findByUsername(testUsername);
+        verify(userProfileRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should update user rating when username exists")
+    void updateUserRating_ValidUsername_Success() {
+        // Arrange
+        double newMu = 30.0;
+        double newSigma = 5.0;
+        Rating newRating = new Rating(newMu, newSigma);
+
+        when(userProfileRepository.findByUsername(testUsername))
+                .thenReturn(Optional.of(testUserProfile));
+        when(userProfileRepository.save(any(UserProfile.class)))
+                .thenReturn(testUserProfile);
+
+        // Act
+        userService.updateUserRating(testUsername, newRating);
+
+        // Assert
+        assertEquals(newMu, testUserProfile.getMu());
+        assertEquals(newSigma, testUserProfile.getSigma());
+        assertEquals(newMu - TrueSkillConstants.K_FACTOR * newSigma, testUserProfile.getSkillIndex());
+
+        // Verify
+        verify(userProfileRepository).findByUsername(testUsername);
+        verify(userProfileRepository).save(testUserProfile);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when updating rating for non-existent user")
+    void updateUserRating_InvalidUsername_ThrowsException() {
+        // Arrange
+        Rating newRating = new Rating(30.0, 5.0);
+        when(userProfileRepository.findByUsername(testUsername))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        ApiRequestException exception = assertThrows(ApiRequestException.class,
+                () -> userService.updateUserRating(testUsername, newRating));
+        assertEquals("User not found with username: " + testUsername, exception.getMessage());
+
+        // Verify
+        verify(userProfileRepository).findByUsername(testUsername);
+        verify(userProfileRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should increment win count when username exists")
+    void updateUserWin_ValidUsername_Success() {
+        // Arrange
+        testUserProfile.setWins(5);
+        when(userProfileRepository.findByUsername(testUsername))
+                .thenReturn(Optional.of(testUserProfile));
+        when(userProfileRepository.save(any(UserProfile.class)))
+                .thenReturn(testUserProfile);
+
+        // Act
+        userService.updateUserWin(testUsername);
+
+        // Assert
+        assertEquals(6, testUserProfile.getWins());
+
+        // Verify
+        verify(userProfileRepository).findByUsername(testUsername);
+        verify(userProfileRepository).save(testUserProfile);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when updating win count for non-existent user")
+    void updateUserWin_InvalidUsername_ThrowsException() {
+        // Arrange
+        when(userProfileRepository.findByUsername(testUsername))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        ApiRequestException exception = assertThrows(ApiRequestException.class,
+                () -> userService.updateUserWin(testUsername));
+        assertEquals("User not found with username: " + testUsername, exception.getMessage());
+
+        // Verify
+        verify(userProfileRepository).findByUsername(testUsername);
+        verify(userProfileRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Should increment loss count when username exists")
+    void updateUserLoss_ValidUsername_Success() {
+        // Arrange
+        testUserProfile.setLosses(3);
+        when(userProfileRepository.findByUsername(testUsername))
+                .thenReturn(Optional.of(testUserProfile));
+        when(userProfileRepository.save(any(UserProfile.class)))
+                .thenReturn(testUserProfile);
+
+        // Act
+        userService.updateUserLoss(testUsername);
+
+        // Assert
+        assertEquals(4, testUserProfile.getLosses());
+
+        // Verify
+        verify(userProfileRepository).findByUsername(testUsername);
+        verify(userProfileRepository).save(testUserProfile);
+    }
+
+    @Test
+    @DisplayName("Should throw exception when updating loss count for non-existent user")
+    void updateUserLoss_InvalidUsername_ThrowsException() {
+        // Arrange
+        when(userProfileRepository.findByUsername(testUsername))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        ApiRequestException exception = assertThrows(ApiRequestException.class,
+                () -> userService.updateUserLoss(testUsername));
+        assertEquals("User not found with username: " + testUsername, exception.getMessage());
+
+        // Verify
+        verify(userProfileRepository).findByUsername(testUsername);
+        verify(userProfileRepository, never()).save(any());
+    }
 }

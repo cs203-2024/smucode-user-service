@@ -64,7 +64,7 @@ public class AWSUtil {
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .build()) {
 
-            String key = String.format("profile-picture/%s-%s", username, UUID.randomUUID());
+            String key = String.format("user-pictures/%s-%s", username, UUID.randomUUID());
             this.usernameToKeyMap.put(username, key);
 
             PutObjectRequest objectRequest = PutObjectRequest.builder()
