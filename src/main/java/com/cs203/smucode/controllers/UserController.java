@@ -145,7 +145,7 @@ public class UserController {
                 throw new ApiRequestException("Please provide a non-empty or null key");
             }
 
-            if (!key.startsWith("profile-picture/")) {
+            if (!key.startsWith("user-pictures/")) {
                 throw new ApiRequestException("Invalid key: " + key + ", please provide a valid key");
             }
 
