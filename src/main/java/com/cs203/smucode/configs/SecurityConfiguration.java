@@ -34,7 +34,7 @@ public class SecurityConfiguration {
                         "/api/users/update-loss/*",
                         "/api/users/update-win/*"
                         )
-                .hasAuthority("SCOPE_ROLE_ADMIN")
+                .hasAnyAuthority("SCOPE_ROLE_ADMIN", "SCOPE_ROLE_SYSTEM")
                 .requestMatchers(
                         "/api/users/upload-picture",
                         "/api/users/get-upload-link"
