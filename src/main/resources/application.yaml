@@ -15,7 +15,25 @@ spring:
         jwt:
           issuer-uri: ${JWT_ISSUER_URI:smucode-auth-service}
           jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8000/api/auth/.well-known/jwks.json}
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    open-in-view: false
 
+logging:
+  level:
+    root: INFO
+    com.cs203.smucode: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
 
 eureka:
   client:
