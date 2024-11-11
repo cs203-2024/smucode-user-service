@@ -40,7 +40,8 @@ public class SecurityConfiguration {
                         "/api/users/get-upload-link"
                 )
                 .authenticated()
-                .requestMatchers("/api/users/**")
+                .requestMatchers("/api/users/profile/create",
+                        "/api/users/profile/delete")
                 .hasAuthority("SCOPE_ROLE_SYSTEM")
                 .anyRequest()
                 .permitAll()
